@@ -255,11 +255,11 @@ async function downloadOrderPDF(orderData) {
         // Descargar PDF
         doc.save(fileName);
         
-        // Obtener el PDF en base64 para enviar por correo
-        const pdfBase64 = doc.output('datauristring').split(',')[1];
+        // Obtener el PDF como Blob para enviar por correo
+        const pdfBlob = doc.output('blob');
         
         showNotification('PDF generado exitosamente', 'success');
-        return pdfBase64;
+        return pdfBlob;
         
     } catch (error) {
         console.error('Error generando PDF:', error);
@@ -304,71 +304,47 @@ function preparePDFData(cart, customerInfo, orderNumber, paymentMethod, totals) 
 }
 
 // =======================================================================
-// FUNCIÓN PARA ENVIAR CORREO ELECTRÓNICO CON EL PDF
+// FUNCIÓN PARA ENVIAR CORREO ELECTRÓNICO CON FORM SUBMIT
 // =======================================================================
 
-async function sendEmailWithPDF(orderData, pdfBase64) {
+async function sendOrderToEmail(orderData, pdfBlob) {
     try {
-        showNotification('Enviando PDF a tu correo...', 'success');
+        showNotification('Enviando pedido a tu correo...', 'success');
         
-        // Usar EmailJS para enviar el correo
-        const templateParams = {
-            order_number: orderData.orderNumber,
-            customer_name: orderData.customer.name,
-            customer_email: orderData.customer.email,
-            customer_phone: orderData.customer.phone,
-            total_amount: orderData.totals.total.toFixed(2),
-            payment_method: orderData.paymentMethod,
-            business_email: 'rangeljose4747@gmail.com',
-            to_email: 'rangeljose4747@gmail.com',
-            pdf_file: pdfBase64,
-            pdf_filename: `Pedido-${orderData.orderNumber}.pdf`
-        };
-
-        // Enviar correo usando EmailJS
-        const response = await emailjs.send(
-            'service_your_service_id', // Reemplaza con tu Service ID de EmailJS
-            'template_your_template_id', // Reemplaza con tu Template ID de EmailJS
-            templateParams,
-            'your_public_key' // Reemplaza con tu Public Key de EmailJS
-        );
-
-        showNotification('PDF enviado a tu correo exitosamente', 'success');
-        return true;
-        
-    } catch (error) {
-        console.error('Error enviando correo:', error);
-        showNotification('Error al enviar el PDF por correo', 'error');
-        return false;
-    }
-}
-
-// Función alternativa usando FormSubmit (más simple)
-async function sendEmailAlternative(orderData, pdfBase64) {
-    try {
-        // Crear un formulario temporal para enviar por FormSubmit
+        // Crear FormData para FormSubmit
         const formData = new FormData();
         
-        // Convertir base64 a blob
-        const byteCharacters = atob(pdfBase64);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const pdfBlob = new Blob([byteArray], { type: 'application/pdf' });
-        
-        formData.append('_subject', `Nuevo Pedido - ${orderData.orderNumber}`);
+        // Configuración de FormSubmit
+        formData.append('_subject', `🚀 NUEVO PEDIDO - ${orderData.orderNumber}`);
         formData.append('_replyto', orderData.customer.email);
+        formData.append('_captcha', 'false');
+        formData.append('_template', 'table');
+        
+        // Datos del pedido
         formData.append('order_number', orderData.orderNumber);
         formData.append('customer_name', orderData.customer.name);
         formData.append('customer_email', orderData.customer.email);
         formData.append('customer_phone', orderData.customer.phone);
+        formData.append('customer_address', orderData.customer.address);
         formData.append('total_amount', `$${orderData.totals.total.toFixed(2)}`);
         formData.append('payment_method', orderData.paymentMethod);
-        formData.append('pdf_file', pdfBlob, `Pedido-${orderData.orderNumber}.pdf`);
+        formData.append('discount_applied', orderData.totals.discount > 0 ? 'SÍ (30%)' : 'NO');
+        formData.append('subtotal', `$${orderData.totals.subtotal.toFixed(2)}`);
+        formData.append('final_total', `$${orderData.totals.total.toFixed(2)}`);
         
-        // Enviar usando FormSubmit (requiere configurar formsubmit.co)
+        // Items del pedido como texto
+        let itemsText = '';
+        orderData.items.forEach((item, index) => {
+            itemsText += `${index + 1}. ${item.name} - ${item.version} (x${item.quantity}) - $${item.total.toFixed(2)}\n`;
+        });
+        formData.append('items', itemsText);
+        
+        // Adjuntar el PDF
+        if (pdfBlob) {
+            formData.append('pdf_file', pdfBlob, `Pedido-${orderData.orderNumber}.pdf`);
+        }
+        
+        // Enviar usando FormSubmit
         const response = await fetch('https://formsubmit.co/ajax/rangeljose4747@gmail.com', {
             method: 'POST',
             body: formData
@@ -384,22 +360,24 @@ async function sendEmailAlternative(orderData, pdfBase64) {
         }
         
     } catch (error) {
-        console.error('Error enviando correo alternativo:', error);
+        console.error('Error enviando correo:', error);
         showNotification('Error al enviar el pedido por correo', 'error');
         return false;
     }
 }
 
-// Función unificada para manejar el envío del PDF
+// Función unificada para manejar el envío del PDF y correo
 async function handlePDFAndEmail(orderData) {
     try {
         // Generar y descargar PDF
-        const pdfBase64 = await downloadOrderPDF(orderData);
+        const pdfBlob = await downloadOrderPDF(orderData);
         
-        if (pdfBase64) {
-            // Intentar enviar por correo (usar la que prefieras)
-            await sendEmailWithPDF(orderData, pdfBase64);
-            // O usar: await sendEmailAlternative(orderData, pdfBase64);
+        if (pdfBlob) {
+            // Enviar por correo con FormSubmit
+            await sendOrderToEmail(orderData, pdfBlob);
+        } else {
+            // Si no se pudo generar el PDF, enviar solo los datos
+            await sendOrderToEmail(orderData, null);
         }
         
         return true;
