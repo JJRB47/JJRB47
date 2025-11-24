@@ -6,7 +6,7 @@ const BUSINESS_INFO = {
     whatsappNumber: '584122891366',
     paypalLink: 'https://www.paypal.me/rangeljo',
     businessName: 'Jonathan Jose Rangel Betancourt (JJRB)',
-    discountPercentage: 0.30, // 30% de descuento para efectivo
+    discountPercentage: 0.30,
     email: 'rangeljose4747@gmail.com'
 };
 
@@ -42,6 +42,56 @@ const products = [
 ];
 
 // =======================================================================
+// FUNCIONES UTILITARIAS CENTRALIZADAS
+// =======================================================================
+
+// Obtener saludo según la hora del día
+function getGreetingByTime() {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Buenos días";
+    if (hour >= 12 && hour < 18) return "Buenas tardes";
+    return "Buenas noches";
+}
+
+// Obtener el nombre del método de pago
+function getPaymentMethodName(method) {
+    const methods = {
+        'transferencia': 'Transferencia Bancaria',
+        'paypal': 'PayPal',
+        'efectivo': `Efectivo (${(BUSINESS_INFO.discountPercentage * 100)}% descuento)`
+    };
+    return methods[method] || 'Transferencia Bancaria';
+}
+
+// Sanitizar inputs
+function sanitizeInput(input) {
+    if (typeof input !== 'string') return '';
+    return input
+        .replace(/[<>]/g, '')
+        .trim()
+        .substring(0, 100);
+}
+
+// Validar email
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
+}
+
+// Validar teléfono
+function validatePhone(phone) {
+    const re = /^[\+]?[0-9\s\-\(\)]{10,}$/;
+    return re.test(phone);
+}
+
+// Generar número de pedido único
+function generateOrderNumber() {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substr(2, 6);
+    return `JJRB-${timestamp}-${random}`.toUpperCase();
+}
+
+// =======================================================================
 // FUNCIONES DE PRODUCTOS
 // =======================================================================
 
@@ -52,13 +102,9 @@ function renderProducts() {
         console.error('Elemento con id "products-grid" no encontrado.');
         return;
     }
-    productsGrid.innerHTML = '';
     
-    products.forEach(product => {
-        const productCard = document.createElement('div');
-        productCard.className = `product-card ${product.logoClass}`;
-        
-        productCard.innerHTML = `
+    productsGrid.innerHTML = products.map(product => `
+        <div class="product-card ${product.logoClass}">
             <i class="${product.icon} product-icon ${product.id === 1 ? 'windows-icon' : 'office-icon'}"></i>
             <h3 class="product-title">${product.name}</h3>
             <p class="product-description">${product.description}</p>
@@ -72,9 +118,8 @@ function renderProducts() {
             <button class="add-to-cart-btn" data-product-id="${product.id}">
                 <i class="fas fa-cart-plus"></i> Agregar al Carrito
             </button>
-        `;
-        productsGrid.appendChild(productCard);
-    });
+        </div>
+    `).join('');
 }
 
 // Obtener producto por ID
@@ -85,7 +130,5 @@ function getProductById(productId) {
 // Obtener versión de producto
 function getProductVersion(productId, versionId) {
     const product = getProductById(productId);
-    if (!product || !product.versions) return null;
-    
-    return product.versions.find(v => v.id === versionId);
+    return product?.versions?.find(v => v.id === versionId) || null;
 }
