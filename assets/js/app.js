@@ -12,6 +12,8 @@ function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
     notification.textContent = message;
     notification.className = 'custom-notification';
+    notification.setAttribute('role', 'alert');
+    notification.setAttribute('aria-live', 'polite');
     
     const backgroundColor = type === 'error' ? 'var(--error-color)' : 'var(--success-color)';
     
@@ -59,18 +61,22 @@ if (!document.querySelector('#notification-styles')) {
 function openCartModal() {
     document.getElementById('cart-modal').style.display = 'block';
     document.body.style.overflow = 'hidden';
+    document.getElementById('cart-modal').setAttribute('aria-hidden', 'false');
     switchTab('products');
 }
 
 function closeCartModal() {
     document.getElementById('cart-modal').style.display = 'none';
     document.body.style.overflow = 'auto';
+    document.getElementById('cart-modal').setAttribute('aria-hidden', 'true');
     resetVersionSelectors();
 }
 
 function switchTab(tabName) {
+    // Actualizar tabs
     document.querySelectorAll('.cart-tab').forEach(tab => {
         tab.classList.remove('active');
+        tab.setAttribute('aria-selected', 'false');
     });
     
     document.querySelectorAll('.cart-section').forEach(section => {
@@ -80,6 +86,7 @@ function switchTab(tabName) {
     const activeTab = document.querySelector(`.cart-tab[data-tab="${tabName}"]`);
     if (activeTab) {
         activeTab.classList.add('active');
+        activeTab.setAttribute('aria-selected', 'true');
     }
     
     const activeSection = document.getElementById(`${tabName}-section`);
@@ -87,6 +94,7 @@ function switchTab(tabName) {
         activeSection.classList.add('active');
     }
     
+    // Acciones específicas por tab
     if (tabName === 'cart') {
         updateCartDisplay();
     } else if (tabName === 'checkout') {
@@ -119,12 +127,22 @@ function setupEventListeners() {
     const cartButton = document.getElementById('cart-button');
     if (cartButton) {
         cartButton.addEventListener('click', openCartModal);
+        cartButton.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                openCartModal();
+            }
+        });
     }
     
     // Cerrar modal
     const closeModal = document.querySelector('.close-modal');
     if (closeModal) {
         closeModal.addEventListener('click', closeCartModal);
+        closeModal.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                closeCartModal();
+            }
+        });
     }
     
     // Cerrar modal al hacer clic fuera
@@ -137,11 +155,25 @@ function setupEventListeners() {
         });
     }
     
+    // Cerrar modal con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && cartModal.style.display === 'block') {
+            closeCartModal();
+        }
+    });
+    
     // Tabs del carrito
     document.querySelectorAll('.cart-tab').forEach(tab => {
         tab.addEventListener('click', function() {
             const tabName = this.getAttribute('data-tab');
             switchTab(tabName);
+        });
+        
+        tab.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const tabName = this.getAttribute('data-tab');
+                switchTab(tabName);
+            }
         });
     });
     
@@ -210,6 +242,13 @@ function setupEventListeners() {
             const methodId = this.getAttribute('data-method');
             selectPaymentMethod(methodId);
         });
+        
+        method.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const methodId = this.getAttribute('data-method');
+                selectPaymentMethod(methodId);
+            }
+        });
     });
     
     // Formulario de checkout
@@ -218,6 +257,14 @@ function setupEventListeners() {
         checkoutForm.addEventListener('submit', function(e) {
             e.preventDefault();
             processOrder();
+        });
+        
+        // Validación en tiempo real
+        const inputs = checkoutForm.querySelectorAll('input[required]');
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                validateField(this);
+            });
         });
     }
     
@@ -230,6 +277,36 @@ function setupEventListeners() {
             e.preventDefault();
         });
     }
+}
+
+// Validación de campos en tiempo real
+function validateField(field) {
+    const value = field.value.trim();
+    const errorElement = document.getElementById(`${field.id}-error`);
+    
+    if (!errorElement) return;
+    
+    if (!value) {
+        errorElement.textContent = 'Este campo es requerido';
+        field.setAttribute('aria-invalid', 'true');
+        return false;
+    }
+    
+    if (field.type === 'email' && !validateEmail(value)) {
+        errorElement.textContent = 'Por favor ingresa un email válido';
+        field.setAttribute('aria-invalid', 'true');
+        return false;
+    }
+    
+    if (field.id === 'customer-phone' && !validatePhone(value)) {
+        errorElement.textContent = 'Por favor ingresa un teléfono válido';
+        field.setAttribute('aria-invalid', 'true');
+        return false;
+    }
+    
+    errorElement.textContent = '';
+    field.setAttribute('aria-invalid', 'false');
+    return true;
 }
 
 // Inicializar aplicación cuando el DOM esté listo
