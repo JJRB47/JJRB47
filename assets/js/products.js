@@ -1,3 +1,5 @@
+[file name]: products.js
+[file content begin]
 // =======================================================================
 // CONFIGURACIÓN DE PRODUCTOS - SOLO WINDOWS Y OFFICE
 // =======================================================================
@@ -7,7 +9,7 @@ const BUSINESS_INFO = {
     paypalLink: 'https://www.paypal.me/rangeljo',
     businessName: 'Jonathan Jose Rangel Betancourt (JJRB)',
     discountPercentage: 0.30, // 30% de descuento para efectivo
-    email: 'j.rangelb.1993@gmail.com'
+    email: 'rangeljose4747@gmail.com'
 };
 
 // Productos - Solo Windows y Office
@@ -89,3 +91,4 @@ function getProductVersion(productId, versionId) {
     
     return product.versions.find(v => v.id === versionId);
 }
+[file content end]
