@@ -227,7 +227,10 @@ function updateOrderSummary() {
         document.getElementById('order-subtotal').textContent = '$0.00';
         document.getElementById('order-total').textContent = '$0.00';
         document.getElementById('order-discount-row').classList.add('hidden');
-        if (checkoutBtn) checkoutBtn.disabled = true;
+        
+        if (checkoutBtn) {
+            checkoutBtn.disabled = true;
+        }
         return;
     }
     
@@ -252,7 +255,9 @@ function updateOrderSummary() {
     
     document.getElementById('order-subtotal').textContent = `$${totals.subtotal.toFixed(2)}`;
     document.getElementById('order-total').textContent = `$${totals.total.toFixed(2)}`;
-    if (checkoutBtn) checkoutBtn.disabled = false;
+    if (checkoutBtn) {
+        checkoutBtn.disabled = false;
+    }
 }
 
 // Seleccionar método de pago
@@ -275,15 +280,15 @@ function selectPaymentMethod(method) {
 }
 
 // =======================================================================
-// FUNCIÓN PRINCIPAL PROCESAR PEDIDO - OPTIMIZADA
+// FUNCIÓN PRINCIPAL PROCESAR PEDIDO - OPTIMIZADA CON SANITIZACIÓN
 // =======================================================================
 
 // Procesar pedido - VERSIÓN OPTIMIZADA SOLO CON PDF
 async function processOrder() {
-    // Obtener y sanitizar datos
-    let name = sanitizeInput(document.getElementById('customer-name').value);
-    let email = sanitizeInput(document.getElementById('customer-email').value);
-    let phone = sanitizeInput(document.getElementById('customer-phone').value);
+    // Obtener y SANITIZAR datos
+    let name = sanitizeName(document.getElementById('customer-name').value);
+    let email = sanitizeEmail(document.getElementById('customer-email').value);
+    let phone = sanitizePhone(document.getElementById('customer-phone').value);
     let address = sanitizeInput(document.getElementById('customer-address').value);
     
     // Validaciones
