@@ -38,14 +38,64 @@ function calculateCartTotals() {
     };
 }
 
+// Obtener saludo según la hora del día
+function getGreetingByTime() {
+    const hour = new Date().getHours();
+    
+    if (hour >= 5 && hour < 12) {
+        return "Buenos días";
+    } else if (hour >= 12 && hour < 18) {
+        return "Buenas tardes";
+    } else {
+        return "Buenas noches";
+    }
+}
+
 // Obtener el nombre del método de pago
 function getPaymentMethodName(method) {
     switch(method) {
         case 'transferencia': return 'Transferencia Bancaria';
         case 'paypal': return 'PayPal';
-        case 'efectivo': return `Efectivo (${(BUSINESS_INFO.discountPercentage * 100)}% descuento)`;
+        case 'efectivo': return `Efectivo en divisas (${(BUSINESS_INFO.discountPercentage * 100)}% descuento)`;
         default: return 'No especificado';
     }
+}
+
+// Preparar datos para el PDF
+function preparePDFData(cart, customerInfo, orderNumber, paymentMethod, totals) {
+    const now = new Date();
+    
+    return {
+        orderNumber: orderNumber,
+        date: now.toLocaleDateString('es-VE', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }),
+        time: now.toLocaleTimeString('es-VE', {
+            hour: '2-digit',
+            minute: '2-digit'
+        }),
+        customer: {
+            name: customerInfo.name,
+            email: customerInfo.email,
+            phone: customerInfo.phone,
+            address: customerInfo.address
+        },
+        items: cart.map(item => ({
+            name: item.name,
+            version: item.versionName,
+            quantity: item.quantity,
+            price: item.price,
+            total: item.price * item.quantity
+        })),
+        totals: totals,
+        paymentMethod: getPaymentMethodName(paymentMethod),
+        discountPercentage: BUSINESS_INFO.discountPercentage,
+        greeting: getGreetingByTime(),
+        businessInfo: BUSINESS_INFO
+    };
 }
 
 // =======================================================================
@@ -315,8 +365,8 @@ function selectPaymentMethod(method) {
     updateOrderSummary();
 }
 
-// Procesar pedido
-function processOrder() {
+// Procesar pedido - VERSIÓN ACTUALIZADA CON PDF
+async function processOrder() {
     const name = document.getElementById('customer-name').value;
     const email = document.getElementById('customer-email').value;
     const phone = document.getElementById('customer-phone').value;
@@ -334,41 +384,38 @@ function processOrder() {
     localStorage.setItem('jjrb-order-number', orderNumber);
     
     const totals = calculateCartTotals();
+    const greeting = getGreetingByTime();
     
-    let message = `*RECIBO DE SOLICITUD DE PEDIDO*`;
-    message += `\n*Fecha:* ${new Date().toLocaleDateString('es-VE')}`;
-    message += `\n*Pedido N°:* ${orderNum}`;
-    message += `\n---------------------------------`;
-    message += `\n*DATOS DEL CLIENTE*`;
-    message += `\nNombre: ${name}`;
-    message += `\nEmail: ${email}`;
-    message += `\nTeléfono: ${phone}`;
-    message += `\nDirección: ${address}`;
-    message += `\n---------------------------------`;
+    // Preparar datos para PDF y WhatsApp
+    const customerInfo = { name, email, phone, address };
+    const pdfData = preparePDFData(cart, customerInfo, orderNum, paymentMethod, totals);
     
-    message += `\n*DETALLE DEL PEDIDO*`;
-    cart.forEach((item, index) => {
-        const itemTotal = item.price * item.quantity;
-        message += `\n${index + 1}. ${item.name} - ${item.versionName}`;
-        message += `\n   Cantidad: ${item.quantity}`;
-        message += `\n   Precio: $${itemTotal.toFixed(2)}`;
-    });
+    // Generar PDF primero
+    const pdfGenerated = await downloadOrderPDF(pdfData);
     
-    message += `\n---------------------------------`;
-    message += `\n*RESUMEN DE PAGO*`;
-    message += `\nSubtotal: $${totals.subtotal.toFixed(2)}`;
-    
-    if (paymentMethod === 'efectivo') {
-        message += `\n*Descuento (${BUSINESS_INFO.discountPercentage * 100}% Efectivo):* -$${totals.discount.toFixed(2)}`;
+    if (!pdfGenerated) {
+        showNotification('Continuando sin PDF...', 'error');
     }
     
-    message += `\n*Método de Pago:* ${getPaymentMethodName(paymentMethod)}`;
-    message += `\n*TOTAL FINAL:* *$${totals.total.toFixed(2)}*`;
-    message += `\n---------------------------------`;
-    message += `\n_Apreciamos su solicitud. En breve procesaremos su pedido. Gracias por preferirnos._`;
+    // Mensaje de WhatsApp (más corto ya que el PDF contiene los detalles)
+    let message = `📋 *SOLICITUD DE PEDIDO - ${BUSINESS_INFO.businessName}*`;
+    message += `\n────────────────────────────────────`;
+    message += `\n${greeting}, estimado cliente.`;
+    message += `\n\n*📦 Se ha generado su pedido N° ${orderNum}*`;
+    message += `\n\n*👤 Datos de Contacto:*`;
+    message += `\n• Nombre: ${name}`;
+    message += `\n• Teléfono: ${phone}`;
+    message += `\n\n*💰 Resumen del Pago:*`;
+    message += `\n• Total: $${totals.total.toFixed(2)}`;
+    message += `\n• Método: ${getPaymentMethodName(paymentMethod)}`;
+    message += `\n\n📎 *Se ha generado un PDF con el recibo completo*`;
+    message += `\n\nMe comunicaré con usted en los próximos minutos para coordinar el agendamiento de la instalación.`;
+    message += `\n\n⌛ *Tiempo estimado de respuesta: 15-30 minutos*`;
+    message += `\n\n¡Agradecemos su preferencia! 🙏`;
 
     message = encodeURIComponent(message);
     
+    // Limpiar carrito y resetear formulario
     cart = [];
     saveCart();
     updateCart();
@@ -376,9 +423,10 @@ function processOrder() {
     
     switchTab('confirmation');
     
+    // Abrir WhatsApp después de un breve delay
     setTimeout(() => {
         window.open(`https://wa.me/${BUSINESS_INFO.whatsappNumber}?text=${message}`, '_blank');
-    }, 1000);
+    }, 2000);
 }
 
 // Guardar carrito en localStorage
