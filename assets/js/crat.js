@@ -61,6 +61,11 @@ function addToCart(productId) {
     }
 
     const versionSelect = document.getElementById(`version-select-${productId}`);
+    if (!versionSelect) {
+        showNotification('Error: Selector de versión no encontrado', 'error');
+        return;
+    }
+
     const selectedOption = versionSelect.options[versionSelect.selectedIndex];
     const versionId = selectedOption.value;
     const versionName = selectedOption.text.split(' - ')[0];
@@ -150,10 +155,14 @@ function updateCart() {
     if (cartCount > 0) {
         cartCountElement.textContent = `(${cartCount})`;
         cartCountElement.style.display = 'inline';
-        tabCartCountElement.textContent = `(${cartCount})`;
+        if (tabCartCountElement) {
+            tabCartCountElement.textContent = `(${cartCount})`;
+        }
     } else {
         cartCountElement.style.display = 'none';
-        tabCartCountElement.textContent = '(0)';
+        if (tabCartCountElement) {
+            tabCartCountElement.textContent = '(0)';
+        }
     }
 }
 
@@ -161,6 +170,8 @@ function updateCart() {
 function updateCartDisplay() {
     const cartItemsContainer = document.getElementById('cart-items');
     const proceedCheckoutBtn = document.getElementById('proceed-checkout');
+    
+    if (!cartItemsContainer) return;
     
     if (cart.length === 0) {
         cartItemsContainer.innerHTML = `
@@ -176,7 +187,9 @@ function updateCartDisplay() {
         document.getElementById('subtotal').textContent = '$0.00';
         document.getElementById('total').textContent = '$0.00';
         document.getElementById('discount-row').classList.add('hidden');
-        proceedCheckoutBtn.disabled = true;
+        if (proceedCheckoutBtn) {
+            proceedCheckoutBtn.disabled = true;
+        }
         return;
     }
     
@@ -222,13 +235,17 @@ function updateCartDisplay() {
     
     document.getElementById('subtotal').textContent = `$${totals.subtotal.toFixed(2)}`;
     document.getElementById('total').textContent = `$${totals.total.toFixed(2)}`;
-    proceedCheckoutBtn.disabled = false;
+    if (proceedCheckoutBtn) {
+        proceedCheckoutBtn.disabled = false;
+    }
 }
 
 // Actualizar resumen del pedido
 function updateOrderSummary() {
     const orderItemsContainer = document.getElementById('order-items');
     const checkoutBtn = document.querySelector('#checkout-form button[type="submit"]');
+    
+    if (!orderItemsContainer) return;
     
     if (cart.length === 0) {
         orderItemsContainer.innerHTML = `
@@ -288,7 +305,11 @@ function selectPaymentMethod(method) {
     document.querySelectorAll('.payment-method').forEach(pm => {
         pm.classList.remove('selected');
     });
-    document.querySelector(`.payment-method[data-method="${method}"]`).classList.add('selected');
+    
+    const selectedMethod = document.querySelector(`.payment-method[data-method="${method}"]`);
+    if (selectedMethod) {
+        selectedMethod.classList.add('selected');
+    }
     
     updateCartDisplay();
     updateOrderSummary();
