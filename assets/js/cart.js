@@ -1,5 +1,3 @@
-[file name]: cart.js
-[file content begin]
 // =======================================================================
 // VARIABLES GLOBALES DEL CARRITO
 // =======================================================================
@@ -440,4 +438,3 @@ function resetVersionSelectors() {
         select.selectedIndex = 0;
     });
 }
-[file content end]
