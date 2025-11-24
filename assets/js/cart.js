@@ -1,3 +1,5 @@
+[file name]: cart.js
+[file content begin]
 // =======================================================================
 // VARIABLES GLOBALES DEL CARRITO
 // =======================================================================
@@ -68,10 +70,9 @@ function preparePDFData(cart, customerInfo, orderNumber, paymentMethod, totals) 
     return {
         orderNumber: orderNumber,
         date: now.toLocaleDateString('es-VE', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
         }),
         time: now.toLocaleTimeString('es-VE', {
             hour: '2-digit',
@@ -93,8 +94,7 @@ function preparePDFData(cart, customerInfo, orderNumber, paymentMethod, totals) 
         totals: totals,
         paymentMethod: getPaymentMethodName(paymentMethod),
         discountPercentage: BUSINESS_INFO.discountPercentage,
-        greeting: getGreetingByTime(),
-        businessInfo: BUSINESS_INFO
+        greeting: getGreetingByTime()
     };
 }
 
@@ -365,7 +365,7 @@ function selectPaymentMethod(method) {
     updateOrderSummary();
 }
 
-// Procesar pedido - VERSIÓN ACTUALIZADA CON PDF
+// Procesar pedido - VERSIÓN ACTUALIZADA CON PDF Y CORREO
 async function processOrder() {
     const name = document.getElementById('customer-name').value;
     const email = document.getElementById('customer-email').value;
@@ -390,11 +390,11 @@ async function processOrder() {
     const customerInfo = { name, email, phone, address };
     const pdfData = preparePDFData(cart, customerInfo, orderNum, paymentMethod, totals);
     
-    // Generar PDF primero
-    const pdfGenerated = await downloadOrderPDF(pdfData);
+    // Generar PDF y enviar por correo
+    const emailSent = await handlePDFAndEmail(pdfData);
     
-    if (!pdfGenerated) {
-        showNotification('Continuando sin PDF...', 'error');
+    if (!emailSent) {
+        showNotification('PDF generado pero error enviando correo', 'error');
     }
     
     // Mensaje de WhatsApp (más corto ya que el PDF contiene los detalles)
@@ -440,3 +440,5 @@ function resetVersionSelectors() {
         select.selectedIndex = 0;
     });
 }
+
+[file content end]
