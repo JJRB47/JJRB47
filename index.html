@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jonathan Jose Rangel Betancourt | Enlaces Profesionales</title>
     
+    <!-- Meta tags SEO mejorados -->
+    <meta name="description" content="Jonathan Jose Rangel Betancourt - Servicios profesionales de software, instalación de Windows y Microsoft Office. Carrito de compras integrado.">
+    <meta name="keywords" content="Windows, Office, software, instalación, licencias, Jonathan Rangel">
+    <meta name="author" content="Jonathan Jose Rangel Betancourt">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Jonathan Jose Rangel Betancourt - Servicios Profesionales">
+    <meta property="og:description" content="Instalación profesional de Windows y Microsoft Office con licencias digitales.">
+    <meta property="og:type" content="website">
+    
     <!-- Fuentes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -32,52 +42,52 @@
 
         <!-- Grid de enlaces -->
         <div class="links-grid">
-            <a href="https://mega.nz/folder/yBo3RLDZ#Dzpc5aAN3oAk70R04dEU6A" class="link-button fade-in delay-1" target="_blank">
+            <a href="https://mega.nz/folder/yBo3RLDZ#Dzpc5aAN3oAk70R04dEU6A" class="link-button fade-in delay-1" target="_blank" rel="noopener">
                 <i class="fas fa-folder-open"></i>
                 <span>Catálogo MEGA</span>
             </a>
 
-            <a href="https://wa.me/584122891366" class="link-button whatsapp fade-in delay-2" target="_blank">
+            <a href="https://wa.me/584122891366" class="link-button whatsapp fade-in delay-2" target="_blank" rel="noopener">
                 <i class="fab fa-whatsapp"></i>
                 <span>WhatsApp Business</span>
             </a>
 
-            <a href="https://www.instagram.com/jonathanra47?igsh=MXc0aGZubHV2bnJodQ==" class="link-button fade-in delay-3" target="_blank">
+            <a href="https://www.instagram.com/jonathanra47?igsh=MXc0aGZubHV2bnJodQ==" class="link-button fade-in delay-3" target="_blank" rel="noopener">
                 <i class="fab fa-instagram"></i>
                 <span>Instagram Personal</span>
             </a>
 
-            <a href="https://www.instagram.com/guicar2025?igsh=MXNscDdsd2p0YjAzMA==" class="link-button fade-in delay-4" target="_blank">
+            <a href="https://www.instagram.com/guicar2025?igsh=MXNscDdsd2p0YjAzMA==" class="link-button fade-in delay-4" target="_blank" rel="noopener">
                 <i class="fab fa-instagram"></i>
                 <span>Instagram Guicar</span>
             </a>
 
-            <a href="https://www.tiktok.com/@jonathanrangel4747?_r=1&_t=ZM-91bB6qozXmm" class="link-button fade-in delay-5" target="_blank">
+            <a href="https://www.tiktok.com/@jonathanrangel4747?_r=1&_t=ZM-91bB6qozXmm" class="link-button fade-in delay-5" target="_blank" rel="noopener">
                 <i class="fab fa-tiktok"></i>
                 <span>TikTok Personal</span>
             </a>
 
-            <a href="https://www.facebook.com/share/1BmzF7wxGw/" class="link-button fade-in delay-6" target="_blank">
+            <a href="https://www.facebook.com/share/1BmzF7wxGw/" class="link-button fade-in delay-6" target="_blank" rel="noopener">
                 <i class="fab fa-facebook-f"></i>
                 <span>Facebook Personal</span>
             </a>
 
-            <a href="https://www.dropbox.com/scl/fo/vsgm98d09f7vqe7vggnb2/h?rlkey=jzw29qz94u6ymx5ats4txw4vr&st=5mcm537l&dl=0" class="link-button dropbox fade-in delay-7" target="_blank">
+            <a href="https://www.dropbox.com/scl/fo/vsgm98d09f7vqe7vggnb2/h?rlkey=jzw29qz94u6ymx5ats4txw4vr&st=5mcm537l&dl=0" class="link-button dropbox fade-in delay-7" target="_blank" rel="noopener">
                 <i class="fab fa-dropbox"></i>
                 <span>Dropbox</span>
             </a>
 
-            <a href="https://whatsapp.com/channel/0029Vb6ATQT8vd1X5WSMhi22" class="link-button whatsapp fade-in delay-8" target="_blank">
+            <a href="https://whatsapp.com/channel/0029Vb6ATQT8vd1X5WSMhi22" class="link-button whatsapp fade-in delay-8" target="_blank" rel="noopener">
                 <i class="fab fa-whatsapp"></i>
                 <span>Canal WhatsApp Guicar 2025</span>
             </a>
 
-            <a href="https://www.paypal.me/rangeljo" class="link-button paypal fade-in delay-9" target="_blank">
+            <a href="https://www.paypal.me/rangeljo" class="link-button paypal fade-in delay-9" target="_blank" rel="noopener">
                 <i class="fab fa-paypal"></i>
                 <span>PayPal</span>
             </a>
 
-            <a id="cart-button" class="link-button cart fade-in delay-10">
+            <a id="cart-button" class="link-button cart fade-in delay-10" aria-label="Abrir carrito de compras">
                 <i class="fas fa-shopping-cart"></i>
                 <span>Carrito de Ventas <span id="cart-count" style="display: none;">(0)</span></span>
             </a>
@@ -90,27 +100,27 @@
     </div>
 
     <!-- Modal del Carrito -->
-    <div id="cart-modal" class="modal">
+    <div id="cart-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="modal-title">
         <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2 class="modal-title">Carrito de Compras</h2>
+            <span class="close-modal" aria-label="Cerrar modal">&times;</span>
+            <h2 class="modal-title" id="modal-title">Carrito de Compras</h2>
             
             <div class="cart-container">
-                <div class="cart-tabs">
-                    <div class="cart-tab active" data-tab="products">Productos</div>
-                    <div class="cart-tab" data-tab="cart">Carrito <span id="tab-cart-count">(0)</span></div>
-                    <div class="cart-tab" data-tab="checkout">Finalizar Compra</div>
+                <div class="cart-tabs" role="tablist">
+                    <button class="cart-tab active" data-tab="products" role="tab" aria-selected="true">Productos</button>
+                    <button class="cart-tab" data-tab="cart" role="tab" aria-selected="false">Carrito <span id="tab-cart-count">(0)</span></button>
+                    <button class="cart-tab" data-tab="checkout" role="tab" aria-selected="false">Finalizar Compra</button>
                 </div>
                 
                 <!-- Sección de Productos -->
-                <div id="products-section" class="cart-section active">
+                <div id="products-section" class="cart-section active" role="tabpanel">
                     <div class="products-grid" id="products-grid">
                         <!-- Los productos se cargarán dinámicamente con JavaScript -->
                     </div>
                 </div>
                 
                 <!-- Sección del Carrito -->
-                <div id="cart-section" class="cart-section">
+                <div id="cart-section" class="cart-section" role="tabpanel">
                     <div class="cart-items" id="cart-items">
                         <!-- Los elementos del carrito se cargarán dinámicamente con JavaScript -->
                     </div>
@@ -129,50 +139,54 @@
                             <span class="summary-total" id="total">$0.00</span>
                         </div>
                         <div class="discount-notice">
-                            <i class="fas fa-tag"></i>
+                            <i class="fas fa-tag" aria-hidden="true"></i>
                             <strong>¡Oferta especial!</strong> Pago en efectivo tiene 30% de descuento
                         </div>
-                        <button id="proceed-checkout" class="checkout-btn">Proceder al Pago</button>
+                        <button id="proceed-checkout" class="checkout-btn" disabled>Proceder al Pago</button>
                     </div>
                 </div>
                 
                 <!-- Sección de Checkout -->
-                <div id="checkout-section" class="cart-section">
-                    <form id="checkout-form">
+                <div id="checkout-section" class="cart-section" role="tabpanel">
+                    <form id="checkout-form" novalidate>
                         <div class="checkout-form">
                             <div class="form-group">
-                                <label class="form-label" for="customer-name">Nombre Completo</label>
-                                <input type="text" id="customer-name" class="form-input" required>
+                                <label class="form-label" for="customer-name">Nombre Completo *</label>
+                                <input type="text" id="customer-name" class="form-input" required aria-required="true">
+                                <span class="validation-message" id="name-error"></span>
                             </div>
                             <div class="form-group">
-                                <label class="form-label" for="customer-email">Email</label>
-                                <input type="email" id="customer-email" class="form-input" required>
+                                <label class="form-label" for="customer-email">Email *</label>
+                                <input type="email" id="customer-email" class="form-input" required aria-required="true">
+                                <span class="validation-message" id="email-error"></span>
                             </div>
                             <div class="form-group">
-                                <label class="form-label" for="customer-phone">Teléfono</label>
-                                <input type="tel" id="customer-phone" class="form-input" required>
+                                <label class="form-label" for="customer-phone">Teléfono *</label>
+                                <input type="tel" id="customer-phone" class="form-input" required aria-required="true">
+                                <span class="validation-message" id="phone-error"></span>
                             </div>
                             <div class="form-group full-width">
-                                <label class="form-label" for="customer-address">Dirección</label>
-                                <input type="text" id="customer-address" class="form-input" required>
+                                <label class="form-label" for="customer-address">Dirección *</label>
+                                <input type="text" id="customer-address" class="form-input" required aria-required="true">
+                                <span class="validation-message" id="address-error"></span>
                             </div>
                             
                             <!-- Método de Pago -->
                             <div class="form-group full-width">
-                                <label class="form-label">Método de Pago</label>
-                                <div class="payment-methods">
-                                    <div class="payment-method selected" data-method="transferencia">
-                                        <i class="fas fa-university payment-icon"></i>
+                                <label class="form-label">Método de Pago *</label>
+                                <div class="payment-methods" role="radiogroup">
+                                    <div class="payment-method selected" data-method="transferencia" role="radio" aria-checked="true" tabindex="0">
+                                        <i class="fas fa-university payment-icon" aria-hidden="true"></i>
                                         <div class="payment-name">Transferencia</div>
                                         <div class="payment-description">Transferencia bancaria</div>
                                     </div>
-                                    <div class="payment-method" data-method="paypal">
-                                        <i class="fab fa-paypal payment-icon"></i>
+                                    <div class="payment-method" data-method="paypal" role="radio" aria-checked="false" tabindex="0">
+                                        <i class="fab fa-paypal payment-icon" aria-hidden="true"></i>
                                         <div class="payment-name">PayPal</div>
                                         <div class="payment-description">Pago seguro con PayPal</div>
                                     </div>
-                                    <div class="payment-method" data-method="efectivo">
-                                        <i class="fas fa-money-bill payment-icon"></i>
+                                    <div class="payment-method" data-method="efectivo" role="radio" aria-checked="false" tabindex="0">
+                                        <i class="fas fa-money-bill payment-icon" aria-hidden="true"></i>
                                         <div class="payment-name">Efectivo</div>
                                         <div class="payment-description">30% de descuento</div>
                                     </div>
@@ -204,10 +218,10 @@
                 </div>
                 
                 <!-- Sección de Confirmación -->
-                <div id="confirmation-section" class="cart-section">
+                <div id="confirmation-section" class="cart-section" role="tabpanel">
                     <div class="confirmation-message">
                         <div class="confirmation-icon">
-                            <i class="fas fa-check-circle"></i>
+                            <i class="fas fa-check-circle" aria-hidden="true"></i>
                         </div>
                         <h3>¡Pedido Confirmado!</h3>
                         <p>Tu pedido ha sido enviado a WhatsApp Business. Te contactaremos pronto para coordinar el pago y entrega.</p>
@@ -219,10 +233,10 @@
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Scripts - ORDEN CORREGIDO -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="assets/js/pdf-generator.js"></script>
     <script src="assets/js/products.js"></script>
+    <script src="assets/js/pdf-generator.js"></script>
     <script src="assets/js/cart.js"></script>
     <script src="assets/js/app.js"></script>
 </body>
