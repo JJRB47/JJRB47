@@ -66,10 +66,30 @@ function getPaymentMethodName(method) {
 // Sanitizar inputs
 function sanitizeInput(input) {
     if (typeof input !== 'string') return '';
+    
     return input
-        .replace(/[<>]/g, '')
+        .replace(/[<>]/g, '') // Eliminar tags HTML
+        .replace(/javascript:/gi, '') // Eliminar javascript:
+        .replace(/on\w+=/gi, '') // Eliminar event handlers
         .trim()
-        .substring(0, 100);
+        .substring(0, 200); // Limitar longitud
+}
+
+// Función de sanitización específica para nombres
+function sanitizeName(name) {
+    return sanitizeInput(name)
+        .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''); // Solo letras y espacios
+}
+
+// Función de sanitización específica para emails
+function sanitizeEmail(email) {
+    return sanitizeInput(email).toLowerCase();
+}
+
+// Función de sanitización específica para teléfonos
+function sanitizePhone(phone) {
+    return sanitizeInput(phone)
+        .replace(/[^\d\s\-\+\(\)]/g, ''); // Solo números y caracteres de teléfono
 }
 
 // Validar email
