@@ -48,6 +48,10 @@ const products = [
 // Renderizar productos en el grid
 function renderProducts() {
     const productsGrid = document.getElementById('products-grid');
+    if (!productsGrid) {
+        console.error('Elemento con id "products-grid" no encontrado.');
+        return;
+    }
     productsGrid.innerHTML = '';
     
     products.forEach(product => {
