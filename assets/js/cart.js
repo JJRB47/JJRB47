@@ -61,43 +61,8 @@ function getPaymentMethodName(method) {
     }
 }
 
-// Preparar datos para el PDF
-function preparePDFData(cart, customerInfo, orderNumber, paymentMethod, totals) {
-    const now = new Date();
-    
-    return {
-        orderNumber: orderNumber,
-        date: now.toLocaleDateString('es-VE', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        }),
-        time: now.toLocaleTimeString('es-VE', {
-            hour: '2-digit',
-            minute: '2-digit'
-        }),
-        customer: {
-            name: customerInfo.name,
-            email: customerInfo.email,
-            phone: customerInfo.phone,
-            address: customerInfo.address
-        },
-        items: cart.map(item => ({
-            name: item.name,
-            version: item.versionName,
-            quantity: item.quantity,
-            price: item.price,
-            total: item.price * item.quantity
-        })),
-        totals: totals,
-        paymentMethod: getPaymentMethodName(paymentMethod),
-        discountPercentage: BUSINESS_INFO.discountPercentage,
-        greeting: getGreetingByTime()
-    };
-}
-
 // =======================================================================
-// FUNCIONES DEL CARRITO
+// FUNCIONES DEL CARRITO (MANTENIDAS SIN CAMBIOS)
 // =======================================================================
 
 // Agregar producto al carrito
@@ -363,7 +328,11 @@ function selectPaymentMethod(method) {
     updateOrderSummary();
 }
 
-// Procesar pedido - VERSIÓN ACTUALIZADA CON PDF Y CORREO
+// =======================================================================
+// FUNCIÓN PRINCIPAL PROCESAR PEDIDO - OPTIMIZADA
+// =======================================================================
+
+// Procesar pedido - VERSIÓN OPTIMIZADA SOLO CON PDF
 async function processOrder() {
     const name = document.getElementById('customer-name').value;
     const email = document.getElementById('customer-email').value;
@@ -388,26 +357,27 @@ async function processOrder() {
     const customerInfo = { name, email, phone, address };
     const pdfData = preparePDFData(cart, customerInfo, orderNum, paymentMethod, totals);
     
-    // Generar PDF y enviar por correo
-    const emailSent = await handlePDFAndEmail(pdfData);
+    // Generar PDF
+    const pdfGenerated = await downloadOrderPDF(pdfData);
     
-    if (!emailSent) {
-        showNotification('PDF generado pero error enviando correo', 'error');
+    if (!pdfGenerated) {
+        showNotification('El pedido se procesó pero hubo un error con el PDF', 'error');
     }
     
-    // Mensaje de WhatsApp (más corto ya que el PDF contiene los detalles)
+    // Mensaje de WhatsApp optimizado
     let message = `📋 *SOLICITUD DE PEDIDO - ${BUSINESS_INFO.businessName}*`;
     message += `\n────────────────────────────────────`;
     message += `\n${greeting}, estimado cliente.`;
-    message += `\n\n*📦 Se ha generado su pedido N° ${orderNum}*`;
+    message += `\n\n*📦 Pedido N° ${orderNum}*`;
     message += `\n\n*👤 Datos de Contacto:*`;
     message += `\n• Nombre: ${name}`;
     message += `\n• Teléfono: ${phone}`;
+    message += `\n• Email: ${email}`;
     message += `\n\n*💰 Resumen del Pago:*`;
     message += `\n• Total: $${totals.total.toFixed(2)}`;
     message += `\n• Método: ${getPaymentMethodName(paymentMethod)}`;
     message += `\n\n📎 *Se ha generado un PDF con el recibo completo*`;
-    message += `\n\nMe comunicaré con usted en los próximos minutos para coordinar el agendamiento de la instalación.`;
+    message += `\n\nMe comunicaré con usted en los próximos minutos para coordinar el agendamiento.`;
     message += `\n\n⌛ *Tiempo estimado de respuesta: 15-30 minutos*`;
     message += `\n\n¡Agradecemos su preferencia! 🙏`;
 
@@ -424,7 +394,7 @@ async function processOrder() {
     // Abrir WhatsApp después de un breve delay
     setTimeout(() => {
         window.open(`https://wa.me/${BUSINESS_INFO.whatsappNumber}?text=${message}`, '_blank');
-    }, 2000);
+    }, 1500);
 }
 
 // Guardar carrito en localStorage
