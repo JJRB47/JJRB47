@@ -104,9 +104,6 @@ function switchTab(tabName) {
 
 // Inicializar aplicación
 function initApp() {
-    // Inicializar EmailJS (reemplaza con tu Public Key)
-    emailjs.init("tu_public_key_de_emailjs");
-    
     renderProducts();
     updateCart();
     setupEventListeners();
