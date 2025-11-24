@@ -1,8 +1,7 @@
 [file name]: pdf-generator.js
 [file content begin]
-
 // =======================================================================
-// GENERADOR DE PDF PROFESIONAL - VERSIÓN MEJORADA
+// GENERADOR DE PDF PROFESIONAL - VERSIÓN CORREGIDA
 // =======================================================================
 
 // Configuración del PDF mejorada
@@ -244,7 +243,7 @@ function addPersonalMessage(doc, yPosition, orderData) {
     });
 }
 
-// Función principal para generar y descargar PDF - MODIFICADA
+// Función principal para generar y descargar PDF - CORREGIDA
 async function downloadOrderPDF(orderData) {
     try {
         showNotification('Generando PDF profesional...', 'success');
@@ -255,8 +254,9 @@ async function downloadOrderPDF(orderData) {
         // Descargar PDF
         doc.save(fileName);
         
-        // Obtener el PDF como Blob para enviar por correo
-        const pdfBlob = doc.output('blob');
+        // Obtener el PDF como ArrayBuffer para enviar por correo - CORRECCIÓN
+        const pdfArrayBuffer = doc.output('arraybuffer');
+        const pdfBlob = new Blob([pdfArrayBuffer], { type: 'application/pdf' });
         
         showNotification('PDF generado exitosamente', 'success');
         return pdfBlob;
@@ -304,7 +304,7 @@ function preparePDFData(cart, customerInfo, orderNumber, paymentMethod, totals) 
 }
 
 // =======================================================================
-// FUNCIÓN PARA ENVIAR CORREO ELECTRÓNICO CON FORM SUBMIT
+// FUNCIONES PARA ENVIAR CORREO ELECTRÓNICO CON FORM SUBMIT - CORREGIDAS
 // =======================================================================
 
 async function sendOrderToEmail(orderData, pdfBlob) {
@@ -386,5 +386,4 @@ async function handlePDFAndEmail(orderData) {
         return false;
     }
 }
-
 [file content end]
