@@ -12,39 +12,51 @@ const PDF_CONFIG = {
     watermark: 'JJRB'
 };
 
-// Generar PDF del pedido
+// Verificar disponibilidad de jspdf de forma segura
+function getJSPDF() {
+    if (typeof window !== 'undefined' && window.jspdf) {
+        return window.jspdf.jsPDF;
+    }
+    throw new Error('jspdf no está disponible. Verifica que el script esté cargado correctamente.');
+}
+
+// Generar PDF del pedido - VERSIÓN SEGURA
 function generateOrderPDF(orderData) {
-    return new Promise((resolve) => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        
-        // Agregar marca de agua
-        addWatermark(doc, pageWidth, pageHeight);
-        
-        // Encabezado
-        addHeader(doc, pageWidth, orderData);
-        
-        let yPosition = PDF_CONFIG.headerHeight;
-        
-        // Información del pedido
-        yPosition = addOrderInfo(doc, yPosition, orderData);
-        
-        // Datos del cliente
-        yPosition = addCustomerInfo(doc, yPosition, orderData);
-        
-        // Detalle del pedido
-        yPosition = addOrderDetails(doc, yPosition, orderData);
-        
-        // Resumen de pago
-        yPosition = addPaymentSummary(doc, yPosition, orderData);
-        
-        // Mensaje personalizado
-        addPersonalMessage(doc, yPosition, orderData);
-        
-        resolve(doc);
+    return new Promise((resolve, reject) => {
+        try {
+            const jsPDF = getJSPDF();
+            const doc = new jsPDF();
+            
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            
+            // Agregar marca de agua
+            addWatermark(doc, pageWidth, pageHeight);
+            
+            // Encabezado
+            addHeader(doc, pageWidth, orderData);
+            
+            let yPosition = PDF_CONFIG.headerHeight;
+            
+            // Información del pedido
+            yPosition = addOrderInfo(doc, yPosition, orderData);
+            
+            // Datos del cliente
+            yPosition = addCustomerInfo(doc, yPosition, orderData);
+            
+            // Detalle del pedido
+            yPosition = addOrderDetails(doc, yPosition, orderData);
+            
+            // Resumen de pago
+            yPosition = addPaymentSummary(doc, yPosition, orderData);
+            
+            // Mensaje personalizado
+            addPersonalMessage(doc, yPosition, orderData);
+            
+            resolve(doc);
+        } catch (error) {
+            reject(error);
+        }
     });
 }
 
