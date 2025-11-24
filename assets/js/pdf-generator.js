@@ -12,24 +12,6 @@ const PDF_CONFIG = {
     watermark: 'JJRB'
 };
 
-// Función auxiliar para obtener nombre del método de pago
-function getPaymentMethodName(method) {
-    switch(method) {
-        case 'transferencia': return 'Transferencia Bancaria';
-        case 'paypal': return 'PayPal';
-        case 'efectivo': return `Efectivo (30% descuento)`;
-        default: return 'Transferencia Bancaria';
-    }
-}
-
-// Función auxiliar para obtener saludo según hora
-function getGreetingByTime() {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return "Buenos días";
-    if (hour >= 12 && hour < 18) return "Buenas tardes";
-    return "Buenas noches";
-}
-
 // Generar PDF del pedido
 function generateOrderPDF(orderData) {
     return new Promise((resolve) => {
@@ -258,9 +240,7 @@ function addPersonalMessage(doc, yPosition, orderData) {
 // Función principal para generar y descargar PDF
 async function downloadOrderPDF(orderData) {
     try {
-        if (typeof showNotification === 'function') {
-            showNotification('Generando PDF profesional...', 'success');
-        }
+        showNotification('Generando PDF profesional...', 'success');
         
         const doc = await generateOrderPDF(orderData);
         const fileName = `Pedido-${orderData.orderNumber}.pdf`;
@@ -268,17 +248,12 @@ async function downloadOrderPDF(orderData) {
         // Descargar PDF
         doc.save(fileName);
         
-        if (typeof showNotification === 'function') {
-            showNotification('PDF generado exitosamente', 'success');
-        }
-        
+        showNotification('PDF generado exitosamente', 'success');
         return true;
         
     } catch (error) {
         console.error('Error generando PDF:', error);
-        if (typeof showNotification === 'function') {
-            showNotification('Error al generar el PDF', 'error');
-        }
+        showNotification('Error al generar el PDF', 'error');
         return false;
     }
 }
