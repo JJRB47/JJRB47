@@ -4,10 +4,9 @@
 
 let cart = JSON.parse(localStorage.getItem('jjrb-cart')) || [];
 let paymentMethod = 'transferencia';
-let orderNumber = parseInt(localStorage.getItem('jjrb-order-number')) || 1;
 
 // =======================================================================
-// FUNCIONES DE UTILIDAD
+// FUNCIONES DEL CARRITO
 // =======================================================================
 
 // Generar ID único para items del carrito
@@ -17,53 +16,19 @@ function getNextCartId() {
 
 // Calcular totales del carrito
 function calculateCartTotals() {
-    let subtotal = 0;
-    
-    cart.forEach(item => {
-        subtotal += item.price * item.quantity;
-    });
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
     let discount = 0;
-    let total = subtotal;
-    
     if (paymentMethod === 'efectivo') {
         discount = subtotal * BUSINESS_INFO.discountPercentage;
-        total = subtotal - discount;
     }
     
     return {
         subtotal: subtotal,
         discount: discount,
-        total: total
+        total: subtotal - discount
     };
 }
-
-// Obtener saludo según la hora del día
-function getGreetingByTime() {
-    const hour = new Date().getHours();
-    
-    if (hour >= 5 && hour < 12) {
-        return "Buenos días";
-    } else if (hour >= 12 && hour < 18) {
-        return "Buenas tardes";
-    } else {
-        return "Buenas noches";
-    }
-}
-
-// Obtener el nombre del método de pago
-function getPaymentMethodName(method) {
-    switch(method) {
-        case 'transferencia': return 'Transferencia Bancaria';
-        case 'paypal': return 'PayPal';
-        case 'efectivo': return `Efectivo (${(BUSINESS_INFO.discountPercentage * 100)}% descuento)`;
-        default: return 'Transferencia Bancaria';
-    }
-}
-
-// =======================================================================
-// FUNCIONES DEL CARRITO (MANTENIDAS SIN CAMBIOS)
-// =======================================================================
 
 // Agregar producto al carrito
 function addToCart(productId) {
@@ -90,11 +55,9 @@ function addToCart(productId) {
     );
 
     if (existingItemIndex !== -1) {
-        // Si ya existe, incrementar cantidad
         cart[existingItemIndex].quantity += 1;
         showNotification(`${product.name} - ${versionName} (cantidad aumentada)`);
     } else {
-        // Si no existe, agregar nuevo item
         const cartId = getNextCartId();
         cart.push({
             cartId: cartId,
@@ -164,18 +127,17 @@ function updateCart() {
     const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
     const cartCountElement = document.getElementById('cart-count');
     const tabCartCountElement = document.getElementById('tab-cart-count');
+    const proceedCheckoutBtn = document.getElementById('proceed-checkout');
     
     if (cartCount > 0) {
         cartCountElement.textContent = `(${cartCount})`;
         cartCountElement.style.display = 'inline';
-        if (tabCartCountElement) {
-            tabCartCountElement.textContent = `(${cartCount})`;
-        }
+        if (tabCartCountElement) tabCartCountElement.textContent = `(${cartCount})`;
+        if (proceedCheckoutBtn) proceedCheckoutBtn.disabled = false;
     } else {
         cartCountElement.style.display = 'none';
-        if (tabCartCountElement) {
-            tabCartCountElement.textContent = '(0)';
-        }
+        if (tabCartCountElement) tabCartCountElement.textContent = '(0)';
+        if (proceedCheckoutBtn) proceedCheckoutBtn.disabled = true;
     }
 }
 
@@ -200,19 +162,15 @@ function updateCartDisplay() {
         document.getElementById('subtotal').textContent = '$0.00';
         document.getElementById('total').textContent = '$0.00';
         document.getElementById('discount-row').classList.add('hidden');
-        if (proceedCheckoutBtn) {
-            proceedCheckoutBtn.disabled = true;
-        }
+        if (proceedCheckoutBtn) proceedCheckoutBtn.disabled = true;
         return;
     }
     
-    let cartHTML = '';
     const totals = calculateCartTotals();
     
-    cart.forEach(item => {
+    cartItemsContainer.innerHTML = cart.map(item => {
         const itemTotal = item.price * item.quantity;
-        
-        cartHTML += `
+        return `
             <div class="cart-item">
                 <div class="cart-item-info">
                     <i class="${item.icon} cart-item-icon ${item.productId === 1 ? 'windows-icon' : 'office-icon'}"></i>
@@ -223,22 +181,20 @@ function updateCartDisplay() {
                 </div>
                 <div class="cart-item-actions">
                     <div class="quantity-control">
-                        <button class="quantity-decrease" data-cart-id="${item.cartId}">-</button>
+                        <button class="quantity-decrease" data-cart-id="${item.cartId}" aria-label="Disminuir cantidad">-</button>
                         <span>${item.quantity}</span>
-                        <button class="quantity-increase" data-cart-id="${item.cartId}">+</button>
+                        <button class="quantity-increase" data-cart-id="${item.cartId}" aria-label="Aumentar cantidad">+</button>
                     </div>
                     <div class="cart-item-price">$${itemTotal.toFixed(2)}</div>
-                    <button class="remove-btn" data-cart-id="${item.cartId}">
+                    <button class="remove-btn" data-cart-id="${item.cartId}" aria-label="Eliminar producto">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
             </div>
         `;
-    });
+    }).join('');
     
-    cartItemsContainer.innerHTML = cartHTML;
-    
-    // Calcular descuento si es pago en efectivo
+    // Actualizar descuentos y totales
     if (paymentMethod === 'efectivo') {
         document.getElementById('discount-row').classList.remove('hidden');
         document.getElementById('discount-amount').textContent = `-$${totals.discount.toFixed(2)}`;
@@ -248,9 +204,7 @@ function updateCartDisplay() {
     
     document.getElementById('subtotal').textContent = `$${totals.subtotal.toFixed(2)}`;
     document.getElementById('total').textContent = `$${totals.total.toFixed(2)}`;
-    if (proceedCheckoutBtn) {
-        proceedCheckoutBtn.disabled = false;
-    }
+    if (proceedCheckoutBtn) proceedCheckoutBtn.disabled = false;
 }
 
 // Actualizar resumen del pedido
@@ -273,28 +227,22 @@ function updateOrderSummary() {
         document.getElementById('order-subtotal').textContent = '$0.00';
         document.getElementById('order-total').textContent = '$0.00';
         document.getElementById('order-discount-row').classList.add('hidden');
-        
-        if (checkoutBtn) {
-            checkoutBtn.disabled = true;
-        }
+        if (checkoutBtn) checkoutBtn.disabled = true;
         return;
     }
     
-    let orderHTML = '';
     const totals = calculateCartTotals();
     
-    cart.forEach(item => {
+    orderItemsContainer.innerHTML = cart.map(item => {
         const itemTotal = item.price * item.quantity;
-        
-        orderHTML += `
+        return `
             <div class="order-item">
                 <span>${item.name} - ${item.versionName} x${item.quantity}</span>
                 <span>$${itemTotal.toFixed(2)}</span>
             </div>
         `;
-    });
+    }).join('');
     
-    // Calcular descuento si es pago en efectivo
     if (paymentMethod === 'efectivo') {
         document.getElementById('order-discount-row').classList.remove('hidden');
         document.getElementById('order-discount').textContent = `-$${totals.discount.toFixed(2)}`;
@@ -302,13 +250,9 @@ function updateOrderSummary() {
         document.getElementById('order-discount-row').classList.add('hidden');
     }
     
-    orderItemsContainer.innerHTML = orderHTML;
     document.getElementById('order-subtotal').textContent = `$${totals.subtotal.toFixed(2)}`;
     document.getElementById('order-total').textContent = `$${totals.total.toFixed(2)}`;
-    
-    if (checkoutBtn) {
-        checkoutBtn.disabled = false;
-    }
+    if (checkoutBtn) checkoutBtn.disabled = false;
 }
 
 // Seleccionar método de pago
@@ -317,11 +261,13 @@ function selectPaymentMethod(method) {
     
     document.querySelectorAll('.payment-method').forEach(pm => {
         pm.classList.remove('selected');
+        pm.setAttribute('aria-checked', 'false');
     });
     
     const selectedMethod = document.querySelector(`.payment-method[data-method="${method}"]`);
     if (selectedMethod) {
         selectedMethod.classList.add('selected');
+        selectedMethod.setAttribute('aria-checked', 'true');
     }
     
     updateCartDisplay();
@@ -334,21 +280,32 @@ function selectPaymentMethod(method) {
 
 // Procesar pedido - VERSIÓN OPTIMIZADA SOLO CON PDF
 async function processOrder() {
-    const name = document.getElementById('customer-name').value;
-    const email = document.getElementById('customer-email').value;
-    const phone = document.getElementById('customer-phone').value;
-    const address = document.getElementById('customer-address').value;
+    // Obtener y sanitizar datos
+    let name = sanitizeInput(document.getElementById('customer-name').value);
+    let email = sanitizeInput(document.getElementById('customer-email').value);
+    let phone = sanitizeInput(document.getElementById('customer-phone').value);
+    let address = sanitizeInput(document.getElementById('customer-address').value);
     
+    // Validaciones
     if (!name || !email || !phone || !address) {
         showNotification('Por favor completa todos los campos requeridos', 'error');
         return;
     }
 
-    const orderNum = `JJRB-${String(orderNumber).padStart(4, '0')}`;
+    if (!validateEmail(email)) {
+        showNotification('Por favor ingresa un email válido', 'error');
+        document.getElementById('customer-email').focus();
+        return;
+    }
+
+    if (!validatePhone(phone)) {
+        showNotification('Por favor ingresa un número de teléfono válido', 'error');
+        document.getElementById('customer-phone').focus();
+        return;
+    }
+
+    const orderNum = generateOrderNumber();
     document.getElementById('order-number').textContent = orderNum;
-    
-    orderNumber++;
-    localStorage.setItem('jjrb-order-number', orderNumber);
     
     const totals = calculateCartTotals();
     const greeting = getGreetingByTime();
@@ -373,6 +330,7 @@ async function processOrder() {
     message += `\n• Nombre: ${name}`;
     message += `\n• Teléfono: ${phone}`;
     message += `\n• Email: ${email}`;
+    message += `\n• Dirección: ${address}`;
     message += `\n\n*💰 Resumen del Pago:*`;
     message += `\n• Total: $${totals.total.toFixed(2)}`;
     message += `\n• Método: ${getPaymentMethodName(paymentMethod)}`;
@@ -393,7 +351,7 @@ async function processOrder() {
     
     // Abrir WhatsApp después de un breve delay
     setTimeout(() => {
-        window.open(`https://wa.me/${BUSINESS_INFO.whatsappNumber}?text=${message}`, '_blank');
+        window.open(`https://wa.me/${BUSINESS_INFO.whatsappNumber}?text=${message}`, '_blank', 'noopener,noreferrer');
     }, 1500);
 }
 
