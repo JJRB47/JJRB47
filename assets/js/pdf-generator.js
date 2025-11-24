@@ -1,8 +1,8 @@
 // =======================================================================
-// GENERADOR DE PDF PROFESIONAL - VERSIÓN CORREGIDA
+// GENERADOR DE PDF PROFESIONAL - VERSIÓN OPTIMIZADA
 // =======================================================================
 
-// Configuración del PDF mejorada
+// Configuración del PDF
 const PDF_CONFIG = {
     margin: 15,
     fontSize: 9,
@@ -12,44 +12,61 @@ const PDF_CONFIG = {
     watermark: 'JJRB'
 };
 
-// Generar PDF del pedido - VERSIÓN COMPACTA
+// Función auxiliar para obtener nombre del método de pago
+function getPaymentMethodName(method) {
+    switch(method) {
+        case 'transferencia': return 'Transferencia Bancaria';
+        case 'paypal': return 'PayPal';
+        case 'efectivo': return `Efectivo (30% descuento)`;
+        default: return 'Transferencia Bancaria';
+    }
+}
+
+// Función auxiliar para obtener saludo según hora
+function getGreetingByTime() {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Buenos días";
+    if (hour >= 12 && hour < 18) return "Buenas tardes";
+    return "Buenas noches";
+}
+
+// Generar PDF del pedido
 function generateOrderPDF(orderData) {
     return new Promise((resolve) => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
-        // Configuración inicial
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         
-        // Agregar marca de agua de fondo sutil
+        // Agregar marca de agua
         addWatermark(doc, pageWidth, pageHeight);
         
-        // Encabezado compacto
+        // Encabezado
         addHeader(doc, pageWidth, orderData);
         
         let yPosition = PDF_CONFIG.headerHeight;
         
-        // Información del pedido compacta
+        // Información del pedido
         yPosition = addOrderInfo(doc, yPosition, orderData);
         
-        // Datos del cliente compactos
+        // Datos del cliente
         yPosition = addCustomerInfo(doc, yPosition, orderData);
         
-        // Detalle del pedido optimizado
+        // Detalle del pedido
         yPosition = addOrderDetails(doc, yPosition, orderData);
         
-        // Resumen de pago compacto
+        // Resumen de pago
         yPosition = addPaymentSummary(doc, yPosition, orderData);
         
-        // Mensaje personalizado compacto
+        // Mensaje personalizado
         addPersonalMessage(doc, yPosition, orderData);
         
         resolve(doc);
     });
 }
 
-// Agregar marca de agua sutil
+// Agregar marca de agua
 function addWatermark(doc, pageWidth, pageHeight) {
     doc.setFillColor(245, 245, 245);
     doc.setFontSize(40);
@@ -65,7 +82,7 @@ function addWatermark(doc, pageWidth, pageHeight) {
     doc.setTextColor(0, 0, 0);
 }
 
-// Encabezado del PDF compacto
+// Encabezado del PDF
 function addHeader(doc, pageWidth, orderData) {
     // Fondo del encabezado
     doc.setFillColor(...PDF_CONFIG.primaryColor);
@@ -86,11 +103,10 @@ function addHeader(doc, pageWidth, orderData) {
     doc.setLineWidth(0.8);
     doc.line(30, 28, pageWidth - 30, 28);
     
-    // Restaurar color de texto
     doc.setTextColor(0, 0, 0);
 }
 
-// Información del pedido compacta
+// Información del pedido
 function addOrderInfo(doc, yPosition, orderData) {
     doc.setFontSize(10);
     doc.setFont(undefined, 'bold');
@@ -110,7 +126,7 @@ function addOrderInfo(doc, yPosition, orderData) {
     return yPosition;
 }
 
-// Información del cliente compacta
+// Información del cliente
 function addCustomerInfo(doc, yPosition, orderData) {
     doc.setFontSize(10);
     doc.setFont(undefined, 'bold');
@@ -133,7 +149,7 @@ function addCustomerInfo(doc, yPosition, orderData) {
     return yPosition;
 }
 
-// Detalles del pedido optimizados
+// Detalles del pedido
 function addOrderDetails(doc, yPosition, orderData) {
     doc.setFontSize(10);
     doc.setFont(undefined, 'bold');
@@ -141,7 +157,7 @@ function addOrderDetails(doc, yPosition, orderData) {
     
     yPosition += 6;
     
-    // Encabezados de la tabla compactos
+    // Encabezados de la tabla
     doc.setFillColor(240, 240, 240);
     doc.rect(PDF_CONFIG.margin, yPosition, 120, 6, 'F');
     doc.rect(PDF_CONFIG.margin + 120, yPosition, 20, 6, 'F');
@@ -155,21 +171,19 @@ function addOrderDetails(doc, yPosition, orderData) {
     
     yPosition += 8;
     
-    // Items del pedido compactos
+    // Items del pedido
     doc.setFont(undefined, 'normal');
     orderData.items.forEach((item, index) => {
-        if (yPosition > 240) { // Nueva página si es necesario
+        if (yPosition > 240) {
             doc.addPage();
             yPosition = PDF_CONFIG.margin;
             addWatermark(doc, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
         }
         
-        // Producto principal
         doc.text(`${index + 1}. ${item.name}`, PDF_CONFIG.margin + 2, yPosition);
         doc.text(`${item.quantity}`, PDF_CONFIG.margin + 128, yPosition);
         doc.text(`$${item.total.toFixed(2)}`, PDF_CONFIG.margin + 152, yPosition);
         
-        // Versión en línea siguiente más pequeña
         yPosition += 3;
         doc.setFontSize(6);
         doc.text(`${item.version}`, PDF_CONFIG.margin + 5, yPosition);
@@ -182,7 +196,7 @@ function addOrderDetails(doc, yPosition, orderData) {
     return yPosition;
 }
 
-// Resumen de pago compacto
+// Resumen de pago
 function addPaymentSummary(doc, yPosition, orderData) {
     doc.setFontSize(10);
     doc.setFont(undefined, 'bold');
@@ -197,7 +211,7 @@ function addPaymentSummary(doc, yPosition, orderData) {
     
     if (orderData.totals.discount > 0) {
         doc.setTextColor(255, 107, 107);
-        doc.text(`Descuento (${orderData.discountPercentage * 100}%): -$${orderData.totals.discount.toFixed(2)}`, PDF_CONFIG.margin, yPosition);
+        doc.text(`Descuento (30%): -$${orderData.totals.discount.toFixed(2)}`, PDF_CONFIG.margin, yPosition);
         doc.setTextColor(0, 0, 0);
         yPosition += 4;
     }
@@ -215,7 +229,7 @@ function addPaymentSummary(doc, yPosition, orderData) {
     return yPosition;
 }
 
-// Mensaje personalizado compacto
+// Mensaje personalizado
 function addPersonalMessage(doc, yPosition, orderData) {
     doc.setFontSize(8);
     doc.setFont(undefined, 'italic');
@@ -241,10 +255,12 @@ function addPersonalMessage(doc, yPosition, orderData) {
     });
 }
 
-// Función principal para generar y descargar PDF - CORREGIDA
+// Función principal para generar y descargar PDF
 async function downloadOrderPDF(orderData) {
     try {
-        showNotification('Generando PDF profesional...', 'success');
+        if (typeof showNotification === 'function') {
+            showNotification('Generando PDF profesional...', 'success');
+        }
         
         const doc = await generateOrderPDF(orderData);
         const fileName = `Pedido-${orderData.orderNumber}.pdf`;
@@ -252,17 +268,18 @@ async function downloadOrderPDF(orderData) {
         // Descargar PDF
         doc.save(fileName);
         
-        // Obtener el PDF como ArrayBuffer para enviar por correo - CORRECCIÓN
-        const pdfArrayBuffer = doc.output('arraybuffer');
-        const pdfBlob = new Blob([pdfArrayBuffer], { type: 'application/pdf' });
+        if (typeof showNotification === 'function') {
+            showNotification('PDF generado exitosamente', 'success');
+        }
         
-        showNotification('PDF generado exitosamente', 'success');
-        return pdfBlob;
+        return true;
         
     } catch (error) {
         console.error('Error generando PDF:', error);
-        showNotification('Error al generar el PDF', 'error');
-        return null;
+        if (typeof showNotification === 'function') {
+            showNotification('Error al generar el PDF', 'error');
+        }
+        return false;
     }
 }
 
@@ -296,91 +313,7 @@ function preparePDFData(cart, customerInfo, orderNumber, paymentMethod, totals) 
         })),
         totals: totals,
         paymentMethod: getPaymentMethodName(paymentMethod),
-        discountPercentage: BUSINESS_INFO.discountPercentage,
+        discountPercentage: 0.30,
         greeting: getGreetingByTime()
     };
-}
-
-// =======================================================================
-// FUNCIONES PARA ENVIAR CORREO ELECTRÓNICO CON FORM SUBMIT - CORREGIDAS
-// =======================================================================
-
-async function sendOrderToEmail(orderData, pdfBlob) {
-    try {
-        showNotification('Enviando pedido a tu correo...', 'success');
-        
-        // Crear FormData para FormSubmit
-        const formData = new FormData();
-        
-        // Configuración de FormSubmit
-        formData.append('_subject', `🚀 NUEVO PEDIDO - ${orderData.orderNumber}`);
-        formData.append('_replyto', orderData.customer.email);
-        formData.append('_captcha', 'false');
-        formData.append('_template', 'table');
-        
-        // Datos del pedido
-        formData.append('order_number', orderData.orderNumber);
-        formData.append('customer_name', orderData.customer.name);
-        formData.append('customer_email', orderData.customer.email);
-        formData.append('customer_phone', orderData.customer.phone);
-        formData.append('customer_address', orderData.customer.address);
-        formData.append('total_amount', `$${orderData.totals.total.toFixed(2)}`);
-        formData.append('payment_method', orderData.paymentMethod);
-        formData.append('discount_applied', orderData.totals.discount > 0 ? 'SÍ (30%)' : 'NO');
-        formData.append('subtotal', `$${orderData.totals.subtotal.toFixed(2)}`);
-        formData.append('final_total', `$${orderData.totals.total.toFixed(2)}`);
-        
-        // Items del pedido como texto
-        let itemsText = '';
-        orderData.items.forEach((item, index) => {
-            itemsText += `${index + 1}. ${item.name} - ${item.version} (x${item.quantity}) - $${item.total.toFixed(2)}\n`;
-        });
-        formData.append('items', itemsText);
-        
-        // Adjuntar el PDF
-        if (pdfBlob) {
-            formData.append('pdf_file', pdfBlob, `Pedido-${orderData.orderNumber}.pdf`);
-        }
-        
-        // Enviar usando FormSubmit
-        const response = await fetch('https://formsubmit.co/ajax/rangeljose4747@gmail.com', {
-            method: 'POST',
-            body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showNotification('Pedido enviado a tu correo exitosamente', 'success');
-            return true;
-        } else {
-            throw new Error('Error en el envío');
-        }
-        
-    } catch (error) {
-        console.error('Error enviando correo:', error);
-        showNotification('Error al enviar el pedido por correo', 'error');
-        return false;
-    }
-}
-
-// Función unificada para manejar el envío del PDF y correo
-async function handlePDFAndEmail(orderData) {
-    try {
-        // Generar y descargar PDF
-        const pdfBlob = await downloadOrderPDF(orderData);
-        
-        if (pdfBlob) {
-            // Enviar por correo con FormSubmit
-            await sendOrderToEmail(orderData, pdfBlob);
-        } else {
-            // Si no se pudo generar el PDF, enviar solo los datos
-            await sendOrderToEmail(orderData, null);
-        }
-        
-        return true;
-    } catch (error) {
-        console.error('Error en el proceso completo:', error);
-        return false;
-    }
 }
