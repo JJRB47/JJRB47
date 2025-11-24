@@ -58,8 +58,8 @@ function getPaymentMethodName(method) {
     switch(method) {
         case 'transferencia': return 'Transferencia Bancaria';
         case 'paypal': return 'PayPal';
-        case 'efectivo': return `Efectivo en divisas (${(BUSINESS_INFO.discountPercentage * 100)}% descuento)`;
-        default: return 'No especificado';
+        case 'efectivo': return `Efectivo (${(BUSINESS_INFO.discountPercentage * 100)}% descuento)`;
+        default: return 'Transferencia Bancaria';
     }
 }
 
@@ -440,5 +440,4 @@ function resetVersionSelectors() {
         select.selectedIndex = 0;
     });
 }
-
 [file content end]
