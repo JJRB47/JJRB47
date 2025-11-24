@@ -1,5 +1,3 @@
-[file name]: app.js
-[file content begin]
 // =======================================================================
 // APLICACIÓN PRINCIPAL - INICIALIZACIÓN Y EVENTOS
 // =======================================================================
@@ -240,4 +238,3 @@ if (document.readyState === 'loading') {
 } else {
     initApp();
 }
-[file content end]
