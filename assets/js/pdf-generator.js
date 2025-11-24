@@ -1,5 +1,3 @@
-[file name]: pdf-generator.js
-[file content begin]
 // =======================================================================
 // GENERADOR DE PDF PROFESIONAL - VERSIÓN CORREGIDA
 // =======================================================================
@@ -386,4 +384,3 @@ async function handlePDFAndEmail(orderData) {
         return false;
     }
 }
-[file content end]
