@@ -1,5 +1,3 @@
-[file name]: products.js
-[file content begin]
 // =======================================================================
 // CONFIGURACIÓN DE PRODUCTOS - SOLO WINDOWS Y OFFICE
 // =======================================================================
@@ -91,4 +89,3 @@ function getProductVersion(productId, versionId) {
     
     return product.versions.find(v => v.id === versionId);
 }
-[file content end]
