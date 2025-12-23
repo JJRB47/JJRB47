@@ -148,140 +148,6 @@ h1::after {
     margin-right: auto;
 }
 
-/* Panel de Tasas de Cambio BCV */
-.exchange-panel {
-    margin-bottom: 30px;
-    animation: fadeInUp 0.8s ease forwards;
-    animation-delay: 0.1s;
-}
-
-.panel-paper {
-    background: linear-gradient(145deg, rgba(42, 55, 85, 0.9), rgba(26, 35, 58, 0.9));
-    border-radius: 16px;
-    padding: 25px;
-    border: 1px solid var(--border-light);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.panel-paper.updating {
-    animation: pulse 1s ease-in-out;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
-}
-
-.panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid var(--border-light);
-}
-
-.panel-header i {
-    color: var(--accent-color);
-    margin-right: 10px;
-}
-
-.panel-header span {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
-    color: var(--text-light);
-}
-
-.panel-refresh {
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
-    transition: var(--transition);
-    color: var(--text-gray);
-    background: transparent;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.panel-refresh:hover {
-    background: rgba(212, 175, 55, 0.2);
-    color: var(--accent-color);
-}
-
-.panel-content {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.rate-item {
-    text-align: center;
-    padding: 15px;
-    background: rgba(42, 55, 85, 0.5);
-    border-radius: 12px;
-    border: 1px solid rgba(212, 175, 55, 0.2);
-    transition: var(--transition);
-    min-width: 150px;
-    flex: 1;
-}
-
-.rate-item:hover {
-    transform: translateY(-3px);
-    border-color: var(--accent-color);
-}
-
-.rate-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 10px;
-    font-weight: 600;
-    color: var(--text-gray);
-}
-
-.rate-label i {
-    margin-right: 8px;
-    color: var(--accent-color);
-}
-
-.rate-value {
-    font-size: 1.5em;
-    font-weight: 700;
-    color: var(--accent-color);
-    margin-bottom: 5px;
-    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-.rate-date {
-    font-size: 0.9em;
-    color: var(--text-gray);
-}
-
-.panel-footer {
-    text-align: center;
-    padding-top: 15px;
-    border-top: 1px solid var(--border-light);
-}
-
-.last-update {
-    font-size: 0.9em;
-    color: var(--text-gray);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-}
-
-.last-update i {
-    color: var(--accent-color);
-}
-
 /* Grid de enlaces */
 .links-grid {
     display: grid;
@@ -458,7 +324,6 @@ h1::after {
 .delay-8 { animation-delay: 0.8s; }
 .delay-9 { animation-delay: 0.9s; }
 .delay-10 { animation-delay: 1.0s; }
-.delay-11 { animation-delay: 1.1s; }
 
 /* Modal del carrito */
 .modal {
@@ -1372,20 +1237,6 @@ h1::after {
     .product-card {
         padding: 20px 15px;
     }
-    
-    .exchange-panel {
-        margin-bottom: 20px;
-    }
-    
-    .panel-content {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .rate-item {
-        width: 100%;
-        max-width: 250px;
-    }
 }
 
 @media (max-width: 480px) {
@@ -1576,24 +1427,6 @@ input[type="button"] {
     min-width: 44px;
 }
 
-/* Estilos adicionales para el convertidor de divisas */
-.exchange-panel {
-    position: relative;
-}
-
-.panel-paper {
-    transition: all 0.3s ease;
-}
-
-.panel-paper.updating {
-    animation: pulseSoft 1s ease-in-out;
-}
-
-@keyframes pulseSoft {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.9; }
-}
-
 /* Ajustes responsivos para el panel mejorado */
 @media (max-width: 768px) {
     .exchange-panel {
@@ -1620,13 +1453,6 @@ input[type="button"] {
     .rate-value {
         font-size: 1.4em;
     }
-}
-
-/* Mejoras de accesibilidad para el convertidor */
-.converter-input:focus,
-.converter-toggle:focus {
-    outline: 2px solid var(--accent-color);
-    outline-offset: 2px;
 }
 
 /* Asegurar que los botones sean tappable en móviles */
@@ -1656,40 +1482,5 @@ input[type="button"] {
     .tasa-notification {
         animation: none !important;
         transition: none !important;
-    }
-}
-
-/* Corrección para el panel de tasas sin botón de actualizar */
-.panel-header {
-    justify-content: center !important;
-}
-
-.panel-header i {
-    margin-right: 10px;
-}
-
-.panel-header span {
-    text-align: center;
-}
-
-/* Asegurar que el contenedor del panel se ajuste correctamente */
-.panel-paper {
-    position: relative;
-}
-
-/* Mejorar visibilidad del texto "Tasas BCV" */
-.panel-header span {
-    font-size: 1.1em;
-    letter-spacing: 0.5px;
-}
-
-/* Ajustes para móviles */
-@media (max-width: 768px) {
-    .panel-header {
-        padding: 0 10px;
-    }
-    
-    .panel-header span {
-        font-size: 1em;
     }
 }
