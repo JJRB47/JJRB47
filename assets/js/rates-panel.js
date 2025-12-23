@@ -1,9 +1,16 @@
-// rates-panel.js - Archivo para manejar las tasas de cambio BCV con BCV oficial via DolarApi
+// =======================================================================
+// rates-panel.js - Panel de Tasas BCV con Simetría Perfecta
+// Versión: 2.0 - Alineación Visual Total
+// =======================================================================
+
 document.addEventListener('DOMContentLoaded', function() {
     // Variables globales para las tasas
     let currentUSDRate = 0;
     let currentEURRate = 0;
     let lastUpdateTime = null;
+    
+    // Variables para el convertidor
+    let converterVisible = true;
     
     // Eliminar el botón de actualización manual del DOM
     const refreshButton = document.getElementById('panel-refresh');
@@ -14,90 +21,107 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Fuentes de API: Prioridad 1 es DolarApi (BCV Oficial)
     const API_SOURCES = [
-        'https://ve.dolarapi.com/v1/dolares/oficial',      // BCV Oficial - Dólar
-        'https://s3.amazonaws.com/dolartoday/data.json',   // Respaldo DolarToday
-        'https://api.exchangerate-api.com/v4/latest/USD'   // Respaldo ExchangeRate
+        {
+            name: 'BCV Oficial (DolarApi)',
+            url: 'https://ve.dolarapi.com/v1/dolares/oficial',
+            processor: function(data) {
+                return {
+                    usd: parseFloat(data.promedio) || 
+                         parseFloat(data.precio) || 
+                         parseFloat(data.venta) || 
+                         36.50,
+                    eur: null // Se calculará basado en USD
+                };
+            }
+        },
+        {
+            name: 'DolarToday (Respaldo)',
+            url: 'https://s3.amazonaws.com/dolartoday/data.json',
+            processor: function(data) {
+                return {
+                    usd: parseFloat(data?.USD?.promedio) || 
+                         parseFloat(data?.USD?.sicad2) || 
+                         parseFloat(data?.USD?.dolartoday) || 
+                         36.50,
+                    eur: parseFloat(data?.EUR?.promedio) || 
+                         parseFloat(data?.EUR?.dolartoday) || 
+                         39.50
+                };
+            }
+        },
+        {
+            name: 'ExchangeRate-API (Respaldo)',
+            url: 'https://api.exchangerate-api.com/v4/latest/USD',
+            processor: function(data) {
+                if (data.rates && data.rates.VES) {
+                    const usdRate = 1 / parseFloat(data.rates.VES);
+                    const eurRate = data.rates.EUR ? (data.rates.EUR / data.rates.VES) : usdRate * 0.92;
+                    return { usd: usdRate, eur: eurRate };
+                }
+                return { usd: 36.50, eur: 39.50 };
+            }
+        }
     ];
     
-    // Función para obtener las tasas de cambio BCV con BCV oficial como prioridad
+    // =======================================================================
+    // FUNCIONES PRINCIPALES
+    // =======================================================================
+    
+    // Función para obtener las tasas de cambio BCV
     async function getBCVRates() {
         let success = false;
         let apiUsed = '';
+        let rates = { usd: 0, eur: 0 };
         
         // Notificar que se está actualizando
         const panel = document.querySelector('.panel-paper');
         if (panel) panel.classList.add('updating');
         
-        for (const apiUrl of API_SOURCES) {
+        // Intentar cada fuente de API
+        for (const apiSource of API_SOURCES) {
             try {
+                console.log(`🔄 Intentando API: ${apiSource.name}`);
+                
                 // Configurar timeout para evitar esperas infinitas
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
                 
-                const response = await fetch(apiUrl, {
-                    signal: controller.signal
+                const response = await fetch(apiSource.url, {
+                    signal: controller.signal,
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    }
                 });
                 
                 clearTimeout(timeoutId);
                 
                 if (!response.ok) {
-                    throw new Error(`API ${apiUrl} respondió con estado: ${response.status}`);
+                    throw new Error(`API ${apiSource.name} respondió con estado: ${response.status}`);
                 }
                 
                 const data = await response.json();
+                rates = apiSource.processor(data);
                 
-                // Procesar datos según la fuente
-                let usdRate = 0;
-                let eurRate = 0;
-                
-                if (apiUrl.includes('ve.dolarapi.com')) {
-                    // --- LÓGICA PARA DOLARAPI (BCV OFICIAL) ---
-                    usdRate = parseFloat(data.promedio) || 
-                              parseFloat(data.precio) || 
-                              parseFloat(data.venta) || 
-                              36.50;
-                    
-                    // Para el euro, estimamos basado en el dólar (relación aproximada 1 USD = 0.92 EUR)
-                    eurRate = usdRate / 0.92; // Tasa aproximada
-                    
-                } else if (apiUrl.includes('dolartoday')) {
-                    // --- LÓGICA PARA DOLARTODAY (RESPALDO) ---
-                    usdRate = parseFloat(data?.USD?.promedio) || 
-                             parseFloat(data?.USD?.sicad2) || 
-                             parseFloat(data?.USD?.dolartoday) || 
-                             36.50;
-                    
-                    eurRate = parseFloat(data?.EUR?.promedio) || 
-                             parseFloat(data?.EUR?.dolartoday) || 
-                             39.50;
-                    
-                } else if (apiUrl.includes('exchangerate-api')) {
-                    // --- LÓGICA PARA EXCHANGERATE-API (RESPALDO) ---
-                    // Esta API devuelve tasas internacionales, no BCV
-                    // Convertimos a tasa BCV estimada
-                    if (data.rates && data.rates.VES) {
-                        usdRate = 1 / parseFloat(data.rates.VES);
-                        eurRate = data.rates.EUR ? (data.rates.EUR / data.rates.VES) : usdRate * 0.92;
-                    } else {
-                        usdRate = 36.50;
-                        eurRate = 39.50;
-                    }
+                // Si EUR es null, calcular basado en USD (relación aproximada)
+                if (rates.eur === null && rates.usd > 0) {
+                    rates.eur = rates.usd * 1.08; // 1 USD ≈ 0.92 EUR → 1 EUR ≈ 1.08 USD
                 }
                 
                 // Validar que las tasas sean válidas
-                if (usdRate > 0 && eurRate > 0) {
+                if (rates.usd > 0 && rates.eur > 0) {
                     // Guardar tasas en variables globales
-                    currentUSDRate = usdRate;
-                    currentEURRate = eurRate;
+                    currentUSDRate = rates.usd;
+                    currentEURRate = rates.eur;
                     lastUpdateTime = new Date();
                     
-                    // Formatear las tasas con 2 decimales
-                    const formattedUSD = currentUSDRate.toFixed(2);
-                    const formattedEUR = currentEURRate.toFixed(2);
+                    // Formatear las tasas con 2 decimales FIJOS (para simetría)
+                    const formattedUSD = formatNumber(currentUSDRate, 2);
+                    const formattedEUR = formatNumber(currentEURRate, 2);
                     
                     // Actualizar los elementos del DOM con las tasas
-                    document.getElementById('panel-usd-rate').textContent = `Bs. ${formattedUSD}`;
-                    document.getElementById('panel-eur-rate').textContent = `Bs. ${formattedEUR}`;
+                    updateRateDisplay('panel-usd-rate', `Bs. ${formattedUSD}`);
+                    updateRateDisplay('panel-eur-rate', `Bs. ${formattedEUR}`);
                     
                     // Actualizar fecha y hora
                     updateDateTime();
@@ -111,15 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         offlineIndicator.remove();
                     }
                     
-                    // Determinar fuente usada para el log
-                    if (apiUrl.includes('ve.dolarapi.com')) {
-                        apiUsed = 'BCV Oficial (DolarApi)';
-                    } else if (apiUrl.includes('dolartoday')) {
-                        apiUsed = 'DolarToday';
-                    } else {
-                        apiUsed = 'ExchangeRate-API';
-                    }
-                    
+                    apiUsed = apiSource.name;
                     console.log(`✅ Tasas BCV obtenidas de: ${apiUsed}`);
                     console.log(`   USD: Bs. ${formattedUSD} | EUR: Bs. ${formattedEUR}`);
                     
@@ -128,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
             } catch (error) {
-                console.warn(`⚠️ Error con API ${apiUrl}:`, error.message);
+                console.warn(`⚠️ Error con API ${apiSource.name}:`, error.message);
                 // Continuar con la siguiente API
             }
         }
@@ -141,40 +157,31 @@ document.addEventListener('DOMContentLoaded', function() {
             currentEURRate = 39.50;
             lastUpdateTime = new Date();
             
-            const formattedUSD = currentUSDRate.toFixed(2);
-            const formattedEUR = currentEURRate.toFixed(2);
+            const formattedUSD = formatNumber(currentUSDRate, 2);
+            const formattedEUR = formatNumber(currentEURRate, 2);
             
-            document.getElementById('panel-usd-rate').textContent = `Bs. ${formattedUSD}`;
-            document.getElementById('panel-eur-rate').textContent = `Bs. ${formattedEUR}`;
+            updateRateDisplay('panel-usd-rate', `Bs. ${formattedUSD}`);
+            updateRateDisplay('panel-eur-rate', `Bs. ${formattedEUR}`);
             
             updateDateTime();
             updateConverter();
             
             // Mostrar indicador de modo offline
-            const panelHeader = document.querySelector('.panel-header');
-            const offlineIndicator = document.createElement('span');
-            offlineIndicator.className = 'offline-indicator';
-            offlineIndicator.textContent = ' (Offline)';
-            offlineIndicator.style.color = '#ff6b6b';
-            offlineIndicator.style.fontSize = '0.8em';
-            offlineIndicator.style.marginLeft = '5px';
-            
-            if (!document.querySelector('.offline-indicator')) {
-                panelHeader.querySelector('span').appendChild(offlineIndicator);
-            }
+            showOfflineIndicator();
             
             // Mostrar notificación de error
             showTasaNotification('⚠️ Modo offline: Tasas BCV por defecto', 'warning');
         } else {
             // Mostrar notificación de éxito
-            showTasaNotification(`✅ Tasas BCV actualizadas desde ${apiUsed}`, 'success');
+            showTasaNotification(`✅ Tasas actualizadas: ${apiUsed}`, 'success');
             
             // Disparar evento para que otros componentes se actualicen
             document.dispatchEvent(new CustomEvent('ratesUpdated', { 
                 detail: { 
                     usd: currentUSDRate, 
                     eur: currentEURRate,
-                    source: apiUsed
+                    source: apiUsed,
+                    timestamp: lastUpdateTime
                 } 
             }));
         }
@@ -187,6 +194,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Función para actualizar la visualización de una tasa con animación
+    function updateRateDisplay(elementId, value) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        // Agregar clase de animación
+        element.classList.add('updating-number');
+        
+        // Actualizar valor
+        element.textContent = value;
+        
+        // Eliminar clase después de la animación
+        setTimeout(() => {
+            element.classList.remove('updating-number');
+        }, 300);
+    }
+    
+    // Función para formatear números con decimales fijos
+    function formatNumber(num, decimals = 2) {
+        return parseFloat(num).toFixed(decimals);
+    }
+    
     // Función para actualizar fecha y hora
     function updateDateTime() {
         const now = lastUpdateTime || new Date();
@@ -197,16 +226,47 @@ document.addEventListener('DOMContentLoaded', function() {
             year: 'numeric'
         });
         
-        document.getElementById('panel-usd-date').textContent = dateStr;
-        document.getElementById('panel-eur-date').textContent = dateStr;
+        const dateElements = [
+            'panel-usd-date',
+            'panel-eur-date'
+        ];
+        
+        dateElements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = dateStr;
+        });
         
         const timeStr = now.toLocaleTimeString('es-VE', {
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
+            second: '2-digit'
         });
         
-        document.getElementById('panel-last-update').textContent = timeStr;
+        const timeElement = document.getElementById('panel-last-update');
+        if (timeElement) timeElement.textContent = timeStr;
     }
+    
+    // Función para mostrar indicador offline
+    function showOfflineIndicator() {
+        const panelHeader = document.querySelector('.panel-header');
+        if (!panelHeader || document.querySelector('.offline-indicator')) return;
+        
+        const offlineIndicator = document.createElement('span');
+        offlineIndicator.className = 'offline-indicator';
+        offlineIndicator.textContent = ' (Offline)';
+        offlineIndicator.style.cssText = `
+            color: var(--warning-color);
+            font-size: 0.8em;
+            margin-left: 5px;
+            font-weight: 500;
+        `;
+        
+        panelHeader.querySelector('span').appendChild(offlineIndicator);
+    }
+    
+    // =======================================================================
+    // CONVERTIDOR DE DIVISAS (USD ↔ Bs)
+    // =======================================================================
     
     // Función para actualizar el convertidor (SOLO USD↔Bs)
     function updateConverter() {
@@ -214,6 +274,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentUSDRate <= 0) {
             console.warn('⚠️ Tasa USD no válida para el convertidor');
             return;
+        }
+        
+        // Actualizar tasas en los labels del convertidor
+        const usdRateElement = document.querySelector('.converter-rate-usd');
+        const bsRateElement = document.querySelector('.converter-rate-bs');
+        
+        if (usdRateElement) {
+            usdRateElement.textContent = `1 USD = ${formatNumber(currentUSDRate, 2)} Bs`;
+        }
+        
+        if (bsRateElement) {
+            bsRateElement.textContent = `1 Bs = $ ${formatNumber(1/currentUSDRate, 4)}`;
         }
         
         // Obtener valores de los inputs (solo USD)
@@ -226,8 +298,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = usdAmount * currentUSDRate;
             const resultElement = document.getElementById('convert-usd-to-bs-result');
             if (resultElement) {
-                resultElement.textContent = `Bs. ${result.toFixed(2)}`;
-                resultElement.setAttribute('aria-label', `Resultado: ${result.toFixed(2)} Bolívares`);
+                resultElement.textContent = `Bs. ${formatNumber(result, 2)}`;
+                resultElement.setAttribute('aria-label', `Resultado: ${formatNumber(result, 2)} Bolívares`);
             }
         }
         
@@ -237,8 +309,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = currentUSDRate > 0 ? bsAmount / currentUSDRate : 0;
             const resultElement = document.getElementById('convert-bs-to-usd-result');
             if (resultElement) {
-                resultElement.textContent = `$ ${result.toFixed(2)}`;
-                resultElement.setAttribute('aria-label', `Resultado: ${result.toFixed(2)} Dólares`);
+                resultElement.textContent = `$ ${formatNumber(result, 2)}`;
+                resultElement.setAttribute('aria-label', `Resultado: ${formatNumber(result, 2)} Dólares`);
             }
         }
     }
@@ -250,50 +322,63 @@ document.addEventListener('DOMContentLoaded', function() {
             const converterHTML = `
                 <div class="converter-container" id="currency-converter">
                     <div class="converter-header">
-                        <i class="fas fa-exchange-alt"></i>
+                        <i class="fas fa-exchange-alt" aria-hidden="true"></i>
                         <span>Convertidor USD ↔ Bs</span>
-                        <button class="converter-toggle" id="converter-toggle" aria-label="Mostrar/ocultar convertidor">
-                            <i class="fas fa-chevron-down"></i>
+                        <button class="converter-toggle" id="converter-toggle" 
+                                aria-label="${converterVisible ? 'Ocultar' : 'Mostrar'} convertidor"
+                                aria-expanded="${converterVisible}">
+                            <i class="fas ${converterVisible ? 'fa-chevron-up' : 'fa-chevron-down'}" 
+                               aria-hidden="true"></i>
                         </button>
                     </div>
-                    <div class="converter-content" id="converter-content">
+                    <div class="converter-content" id="converter-content" 
+                         style="display: ${converterVisible ? 'block' : 'none'};">
                         <div class="converter-grid">
                             <div class="converter-item">
                                 <div class="converter-label">
-                                    <i class="fas fa-dollar-sign"></i>
+                                    <i class="fas fa-dollar-sign" aria-hidden="true"></i>
                                     <span>USD → Bs</span>
-                                    <small class="converter-rate">1 USD = ${currentUSDRate.toFixed(2)} Bs</small>
+                                    <small class="converter-rate converter-rate-usd">
+                                        1 USD = ${formatNumber(currentUSDRate, 2)} Bs
+                                    </small>
                                 </div>
                                 <div class="converter-input-group">
                                     <input type="number" id="convert-usd-to-bs" class="converter-input" 
-                                           placeholder="0.00" min="0" step="0.01" aria-label="Cantidad en Dólares">
-                                    <span class="converter-arrow">→</span>
-                                    <span class="converter-result" id="convert-usd-to-bs-result">Bs. 0.00</span>
+                                           placeholder="0.00" min="0" step="0.01" 
+                                           aria-label="Cantidad en Dólares a convertir a Bolívares">
+                                    <span class="converter-arrow" aria-hidden="true">→</span>
+                                    <span class="converter-result" id="convert-usd-to-bs-result"
+                                          aria-live="polite">Bs. 0.00</span>
                                 </div>
                             </div>
                             
                             <div class="converter-item">
                                 <div class="converter-label">
-                                    <i class="fas fa-bolivar-sign"></i>
+                                    <i class="fas fa-bolivar-sign" aria-hidden="true"></i>
                                     <span>Bs → USD</span>
-                                    <small class="converter-rate">1 Bs = $ ${(1/currentUSDRate).toFixed(4)}</small>
+                                    <small class="converter-rate converter-rate-bs">
+                                        1 Bs = $ ${formatNumber(1/currentUSDRate, 4)}
+                                    </small>
                                 </div>
                                 <div class="converter-input-group">
                                     <input type="number" id="convert-bs-to-usd" class="converter-input" 
-                                           placeholder="0.00" min="0" step="0.01" aria-label="Cantidad en Bolívares">
-                                    <span class="converter-arrow">→</span>
-                                    <span class="converter-result" id="convert-bs-to-usd-result">$ 0.00</span>
+                                           placeholder="0.00" min="0" step="0.01" 
+                                           aria-label="Cantidad en Bolívares a convertir a Dólares">
+                                    <span class="converter-arrow" aria-hidden="true">→</span>
+                                    <span class="converter-result" id="convert-bs-to-usd-result"
+                                          aria-live="polite">$ 0.00</span>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="converter-info">
-                            <i class="fas fa-info-circle"></i>
-                            <span>Conversión basada en tasa oficial del BCV: 1 USD = ${currentUSDRate.toFixed(2)} Bs</span>
+                            <i class="fas fa-info-circle" aria-hidden="true"></i>
+                            <span>Conversión basada en tasa oficial del BCV: 1 USD = ${formatNumber(currentUSDRate, 2)} Bs</span>
                         </div>
                         
-                        <button class="clear-converter-btn" id="clear-converter">
-                            <i class="fas fa-broom"></i> Limpiar Convertidor
+                        <button class="clear-converter-btn" id="clear-converter" 
+                                aria-label="Limpiar todos los campos del convertidor">
+                            <i class="fas fa-broom" aria-hidden="true"></i> Limpiar Convertidor
                         </button>
                     </div>
                 </div>
@@ -320,6 +405,11 @@ document.addEventListener('DOMContentLoaded', function() {
             input.addEventListener('input', updateConverter);
             input.addEventListener('keyup', updateConverter);
             input.addEventListener('change', updateConverter);
+            
+            // Mejorar experiencia en móviles
+            input.addEventListener('focus', function() {
+                this.select();
+            });
         });
         
         // Configurar toggle del convertidor
@@ -328,24 +418,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (converterToggle && converterContent) {
             converterToggle.addEventListener('click', function() {
-                const isHidden = converterContent.style.display === 'none';
-                converterContent.style.display = isHidden ? 'block' : 'none';
-                this.querySelector('i').className = isHidden ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
-                this.setAttribute('aria-label', isHidden ? 'Ocultar convertidor' : 'Mostrar convertidor');
+                converterVisible = !converterVisible;
+                converterContent.style.display = converterVisible ? 'block' : 'none';
+                
+                const icon = this.querySelector('i');
+                icon.className = converterVisible ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+                
+                this.setAttribute('aria-label', converterVisible ? 'Ocultar convertidor' : 'Mostrar convertidor');
+                this.setAttribute('aria-expanded', converterVisible);
                 
                 // Guardar preferencia en localStorage
-                localStorage.setItem('converter-visible', isHidden ? 'true' : 'false');
+                localStorage.setItem('converter-visible', converterVisible);
                 
                 // Animar la transición
-                if (isHidden) {
+                if (converterVisible) {
                     converterContent.style.animation = 'fadeIn 0.3s ease';
                 }
             });
             
-            // Restaurar estado del convertidor
-            const converterVisible = localStorage.getItem('converter-visible') !== 'false';
-            converterContent.style.display = converterVisible ? 'block' : 'none';
-            converterToggle.querySelector('i').className = converterVisible ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+            // Restaurar estado del convertidor desde localStorage
+            const savedVisibility = localStorage.getItem('converter-visible');
+            if (savedVisibility !== null) {
+                converterVisible = savedVisibility === 'true';
+                converterContent.style.display = converterVisible ? 'block' : 'none';
+                converterToggle.querySelector('i').className = converterVisible ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+                converterToggle.setAttribute('aria-expanded', converterVisible);
+                converterToggle.setAttribute('aria-label', converterVisible ? 'Ocultar convertidor' : 'Mostrar convertidor');
+            }
         }
         
         // Botón para limpiar convertidor
@@ -365,9 +464,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 showTasaNotification('Convertidor limpiado', 'success');
+                
+                // Enfocar el primer input
+                const firstInput = document.getElementById('convert-usd-to-bs');
+                if (firstInput) firstInput.focus();
             });
         }
     }
+    
+    // =======================================================================
+    // NOTIFICACIONES Y ESTILOS
+    // =======================================================================
     
     // Función para mostrar notificaciones de tasas
     function showTasaNotification(message, type = 'info') {
@@ -379,11 +486,13 @@ document.addEventListener('DOMContentLoaded', function() {
         notification.textContent = message;
         notification.setAttribute('role', 'alert');
         notification.setAttribute('aria-live', 'polite');
+        notification.setAttribute('aria-atomic', 'true');
         
         const panelPaper = document.querySelector('.panel-paper');
         if (panelPaper) {
             panelPaper.appendChild(notification);
             
+            // Auto-eliminar después de 3 segundos
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.style.opacity = '0';
@@ -400,19 +509,102 @@ document.addEventListener('DOMContentLoaded', function() {
             const style = document.createElement('style');
             style.id = 'tasa-converter-styles';
             style.textContent = `
-                /* Estilos para panel sin botón de actualizar */
+                /* ============================================================
+                   ESTILOS PARA SIMETRÍA PERFECTA EN TASAS Y CONVERTIDOR
+                   ============================================================ */
+                
+                /* 1. SIMETRÍA DE NÚMEROS - FUNDAMENTAL */
+                .rate-value,
+                .converter-input,
+                .converter-result,
+                .converter-rate {
+                    font-variant-numeric: tabular-nums !important;
+                    font-family: 'Montserrat', 'SF Mono', 'Roboto Mono', monospace !important;
+                    letter-spacing: -0.02em !important;
+                    text-rendering: geometricPrecision !important;
+                }
+                
+                /* 2. PANEL SIN BOTÓN DE ACTUALIZAR - CENTRADO PERFECTO */
                 .panel-header {
                     justify-content: center !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 10px !important;
                 }
                 
                 .panel-header > i {
-                    margin-right: 10px;
+                    margin-right: 0 !important;
                 }
                 
                 .panel-header > span {
-                    text-align: center;
+                    text-align: center !important;
+                    font-weight: 600 !important;
+                    font-size: 1.1em !important;
                 }
                 
+                /* 3. DISEÑO SIMÉTRICO DE TASAS */
+                .panel-content {
+                    display: grid !important;
+                    grid-template-columns: repeat(2, 1fr) !important;
+                    gap: 20px !important;
+                    justify-items: center !important;
+                    align-items: start !important;
+                }
+                
+                .rate-item {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    align-items: center !important;
+                    width: 100% !important;
+                    max-width: 180px !important;
+                    min-height: 100px !important;
+                }
+                
+                .rate-label {
+                    order: 1 !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    gap: 8px !important;
+                    margin-bottom: 12px !important;
+                    width: 100% !important;
+                }
+                
+                .rate-label i {
+                    order: 1 !important;
+                    min-width: 16px !important;
+                    text-align: center !important;
+                }
+                
+                .rate-label span {
+                    order: 2 !important;
+                    font-weight: 600 !important;
+                    min-width: 50px !important;
+                    text-align: left !important;
+                }
+                
+                .rate-value {
+                    order: 2 !important;
+                    min-width: 140px !important;
+                    text-align: center !important;
+                    padding: 8px 12px !important;
+                    background: rgba(212, 175, 55, 0.05) !important;
+                    border-radius: 8px !important;
+                    border: 1px solid rgba(212, 175, 55, 0.1) !important;
+                    font-size: 1.4em !important;
+                    font-weight: 700 !important;
+                    margin-bottom: 6px !important;
+                }
+                
+                .rate-date {
+                    order: 3 !important;
+                    font-size: 0.85em !important;
+                    opacity: 0.8 !important;
+                    min-width: 100px !important;
+                    text-align: center !important;
+                }
+                
+                /* 4. CONVERTIDOR - ALINEACIÓN PRECISA */
                 .converter-container {
                     margin-top: 25px;
                     padding-top: 20px;
@@ -510,12 +702,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     font-size: 0.8em;
                     margin-top: 3px;
                     opacity: 0.8;
+                    font-family: 'Montserrat', monospace;
                 }
                 
                 .converter-input-group {
-                    display: flex;
-                    align-items: center;
+                    display: grid;
+                    grid-template-columns: 1fr auto 1fr;
                     gap: 10px;
+                    align-items: center;
                 }
                 
                 .converter-input {
@@ -528,6 +722,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     font-family: 'Raleway', sans-serif;
                     font-size: 14px;
                     transition: var(--transition);
+                    text-align: right;
                 }
                 
                 .converter-input:focus {
@@ -546,7 +741,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 .converter-result {
                     min-width: 100px;
-                    text-align: center;
+                    text-align: right;
                     font-weight: 600;
                     color: var(--accent-color);
                     padding: 8px 12px;
@@ -602,6 +797,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     margin-right: 8px;
                 }
                 
+                /* 5. NOTIFICACIONES */
                 .tasa-notification {
                     position: absolute;
                     top: 10px;
@@ -634,6 +830,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     border-color: rgba(244, 67, 54, 0.3);
                 }
                 
+                /* 6. ANIMACIONES */
                 @keyframes slideIn {
                     from {
                         opacity: 0;
@@ -650,6 +847,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     to { opacity: 1; }
                 }
                 
+                /* Animación para números que se actualizan */
+                .updating-number {
+                    animation: numberUpdate 0.3s ease !important;
+                    display: inline-block !important;
+                }
+                
+                @keyframes numberUpdate {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.05); }
+                    100% { transform: scale(1); }
+                }
+                
                 .offline-indicator {
                     animation: blink 2s infinite;
                 }
@@ -659,7 +868,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     50% { opacity: 0.5; }
                 }
                 
-                /* Responsive */
+                /* 7. RESPONSIVE */
                 @media (max-width: 768px) {
                     .converter-grid {
                         grid-template-columns: 1fr;
@@ -691,6 +900,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         left: 5px;
                         max-width: none;
                     }
+                    
+                    .panel-content {
+                        grid-template-columns: 1fr !important;
+                    }
                 }
                 
                 @media (max-width: 480px) {
@@ -708,8 +921,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // =======================================================================
+    // INICIALIZACIÓN
+    // =======================================================================
+    
     // Inicializar todo
     function initializeTasaPanel() {
+        console.log('🚀 Inicializando Panel de Tasas BCV con Simetría Perfecta...');
+        
         // Agregar estilos
         addConverterStyles();
         
@@ -727,14 +946,28 @@ document.addEventListener('DOMContentLoaded', function() {
         // Escuchar evento de actualización de tasas
         document.addEventListener('ratesUpdated', function(e) {
             console.log('📈 Tasas BCV actualizadas:', e.detail);
+            
+            // Actualizar convertidor con nuevas tasas
             updateConverter();
+            
+            // Mostrar notificación visual
+            const timeStr = new Date(e.detail.timestamp).toLocaleTimeString('es-VE', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            showTasaNotification(`Tasas actualizadas a las ${timeStr}`, 'success');
         });
         
-        console.log('✅ Panel de tasas BCV inicializado - Convertidor USD↔Bs solamente');
+        console.log('✅ Panel de tasas BCV inicializado - Convertidor USD↔Bs habilitado');
     }
     
     // Inicializar cuando el DOM esté listo
     initializeTasaPanel();
+    
+    // =======================================================================
+    // FUNCIONES DE UTILIDAD PARA USO EXTERNO
+    // =======================================================================
     
     // Exportar funciones para uso externo
     window.getCurrentRates = function() {
@@ -742,7 +975,9 @@ document.addEventListener('DOMContentLoaded', function() {
             usd: currentUSDRate,
             eur: currentEURRate,
             lastUpdate: lastUpdateTime,
-            source: 'BCV Oficial via DolarApi'
+            source: 'BCV Oficial via DolarApi',
+            formattedUSD: formatNumber(currentUSDRate, 2),
+            formattedEUR: formatNumber(currentEURRate, 2)
         };
     };
     
@@ -750,9 +985,27 @@ document.addEventListener('DOMContentLoaded', function() {
     window.formatPriceBCV = function(priceUSD) {
         const total = priceUSD * currentUSDRate;
         return {
-            usd: `$${priceUSD.toFixed(2)}`,
-            bs: `Bs. ${total.toFixed(2)}`,
-            rate: currentUSDRate
+            usd: `$${formatNumber(priceUSD, 2)}`,
+            bs: `Bs. ${formatNumber(total, 2)}`,
+            rate: currentUSDRate,
+            formattedRate: formatNumber(currentUSDRate, 2)
         };
+    };
+    
+    // Función para convertir USD a Bs
+    window.convertUSDToBS = function(usdAmount) {
+        return usdAmount * currentUSDRate;
+    };
+    
+    // Función para convertir Bs a USD
+    window.convertBSToUSD = function(bsAmount) {
+        return currentUSDRate > 0 ? bsAmount / currentUSDRate : 0;
+    };
+    
+    // Función para forzar actualización manual (útil para debugging)
+    window.forceUpdateRates = function() {
+        console.log('🔄 Forzando actualización manual de tasas...');
+        getBCVRates();
+        return window.getCurrentRates();
     };
 });
