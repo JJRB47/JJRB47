@@ -29,7 +29,7 @@
         <div class="decoration-line bottom"></div>
 
         <!-- Marca de agua -->
-        <div class="watermark">JJRB</div>
+        <div class="watermark" aria-hidden="true">JJRB</div>
 
         <!-- Sección de perfil -->
         <div class="profile-section">
@@ -40,63 +40,103 @@
             </p>
         </div>
 
+        <!-- Panel de Tasas de Cambio BCV -->
+        <div class="exchange-panel fade-in delay-11" role="region" aria-label="Tasas de cambio BCV">
+            <div class="panel-paper">
+                <div class="panel-header">
+                    <i class="fas fa-coins" aria-hidden="true"></i>
+                    <span>Tasas BCV</span>
+                    <div class="panel-refresh" id="panel-refresh" aria-label="Actualizar tasas de cambio">
+                        <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                    </div>
+                </div>
+                
+                <div class="panel-content">
+                    <div class="rate-item" role="status" aria-live="polite">
+                        <div class="rate-label">
+                            <i class="fas fa-dollar-sign" aria-hidden="true"></i>
+                            <span>USD</span>
+                        </div>
+                        <div class="rate-value" id="panel-usd-rate" aria-label="Tasa del dólar">Cargando...</div>
+                        <div class="rate-date" id="panel-usd-date" aria-label="Fecha de la tasa del dólar">--/--/----</div>
+                    </div>
+                    
+                    <div class="rate-item" role="status" aria-live="polite">
+                        <div class="rate-label">
+                            <i class="fas fa-euro-sign" aria-hidden="true"></i>
+                            <span>EUR</span>
+                        </div>
+                        <div class="rate-value" id="panel-eur-rate" aria-label="Tasa del euro">Cargando...</div>
+                        <div class="rate-date" id="panel-eur-date" aria-label="Fecha de la tasa del euro">--/--/----</div>
+                    </div>
+                </div>
+                
+                <div class="panel-footer">
+                    <div class="last-update">
+                        <i class="fas fa-clock" aria-hidden="true"></i>
+                        <span>Última actualización: <span id="panel-last-update" aria-label="Hora de última actualización">--:--</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Grid de enlaces -->
-        <div class="links-grid">
-            <a href="https://mega.nz/folder/yBo3RLDZ#Dzpc5aAN3oAk70R04dEU6A" class="link-button fade-in delay-1" target="_blank" rel="noopener">
-                <i class="fas fa-folder-open"></i>
+        <nav class="links-grid" aria-label="Enlaces principales">
+            <a href="https://mega.nz/folder/yBo3RLDZ#Dzpc5aAN3oAk70R04dEU6A" class="link-button fade-in delay-1" target="_blank" rel="noopener noreferrer">
+                <i class="fas fa-folder-open" aria-hidden="true"></i>
                 <span>Catálogo MEGA</span>
             </a>
 
-            <a href="https://wa.me/584122891366" class="link-button whatsapp fade-in delay-2" target="_blank" rel="noopener">
-                <i class="fab fa-whatsapp"></i>
+            <a href="https://wa.me/584122891366" class="link-button whatsapp fade-in delay-2" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-whatsapp" aria-hidden="true"></i>
                 <span>WhatsApp Business</span>
             </a>
 
-            <a href="https://www.instagram.com/jonathanra47?igsh=MXc0aGZubHV2bnJodQ==" class="link-button fade-in delay-3" target="_blank" rel="noopener">
-                <i class="fab fa-instagram"></i>
+            <a href="https://www.instagram.com/jonathanra47?igsh=MXc0aGZubHV2bnJodQ==" class="link-button fade-in delay-3" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-instagram" aria-hidden="true"></i>
                 <span>Instagram Personal</span>
             </a>
 
-            <a href="https://www.instagram.com/guicar2025?igsh=MXNscDdsd2p0YjAzMA==" class="link-button fade-in delay-4" target="_blank" rel="noopener">
-                <i class="fab fa-instagram"></i>
+            <a href="https://www.instagram.com/guicar2025?igsh=MXNscDdsd2p0YjAzMA==" class="link-button fade-in delay-4" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-instagram" aria-hidden="true"></i>
                 <span>Instagram Guicar</span>
             </a>
 
-            <a href="https://www.tiktok.com/@jonathanrangel4747?_r=1&_t=ZM-91bB6qozXmm" class="link-button fade-in delay-5" target="_blank" rel="noopener">
-                <i class="fab fa-tiktok"></i>
+            <a href="https://www.tiktok.com/@jonathanrangel4747?_r=1&_t=ZM-91bB6qozXmm" class="link-button fade-in delay-5" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-tiktok" aria-hidden="true"></i>
                 <span>TikTok Personal</span>
             </a>
 
-            <a href="https://www.facebook.com/share/1BmzF7wxGw/" class="link-button fade-in delay-6" target="_blank" rel="noopener">
-                <i class="fab fa-facebook-f"></i>
+            <a href="https://www.facebook.com/share/1BmzF7wxGw/" class="link-button fade-in delay-6" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-facebook-f" aria-hidden="true"></i>
                 <span>Facebook Personal</span>
             </a>
 
-            <a href="https://www.dropbox.com/scl/fo/vsgm98d09f7vqe7vggnb2/h?rlkey=jzw29qz94u6ymx5ats4txw4vr&st=5mcm537l&dl=0" class="link-button dropbox fade-in delay-7" target="_blank" rel="noopener">
-                <i class="fab fa-dropbox"></i>
+            <a href="https://www.dropbox.com/scl/fo/vsgm98d09f7vqe7vggnb2/h?rlkey=jzw29qz94u6ymx5ats4txw4vr&st=5mcm537l&dl=0" class="link-button dropbox fade-in delay-7" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-dropbox" aria-hidden="true"></i>
                 <span>Dropbox</span>
             </a>
 
-            <a href="https://whatsapp.com/channel/0029Vb6ATQT8vd1X5WSMhi22" class="link-button whatsapp fade-in delay-8" target="_blank" rel="noopener">
-                <i class="fab fa-whatsapp"></i>
+            <a href="https://whatsapp.com/channel/0029Vb6ATQT8vd1X5WSMhi22" class="link-button whatsapp fade-in delay-8" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-whatsapp" aria-hidden="true"></i>
                 <span>Canal WhatsApp Guicar 2025</span>
             </a>
 
-            <a href="https://www.paypal.me/rangeljo" class="link-button paypal fade-in delay-9" target="_blank" rel="noopener">
-                <i class="fab fa-paypal"></i>
+            <a href="https://www.paypal.me/rangeljo" class="link-button paypal fade-in delay-9" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-paypal" aria-hidden="true"></i>
                 <span>PayPal</span>
             </a>
 
-            <a id="cart-button" class="link-button cart fade-in delay-10" aria-label="Abrir carrito de compras">
-                <i class="fas fa-shopping-cart"></i>
+            <button id="cart-button" class="link-button cart fade-in delay-10" aria-label="Abrir carrito de compras">
+                <i class="fas fa-shopping-cart" aria-hidden="true"></i>
                 <span>Carrito de Ventas <span id="cart-count" style="display: none;">(0)</span></span>
-            </a>
-        </div>
+            </button>
+        </nav>
 
         <!-- Footer -->
-        <div class="footer fade-in">
+        <footer class="footer fade-in">
             <p>&copy; 2026 Jonathan Jose Rangel Betancourt (JJRB). Todos los derechos reservados.</p>
-        </div>
+        </footer>
     </div>
 
     <!-- Modal del Carrito -->
@@ -107,9 +147,9 @@
             
             <div class="cart-container">
                 <div class="cart-tabs" role="tablist">
-                    <button class="cart-tab active" data-tab="products" role="tab" aria-selected="true">Productos</button>
-                    <button class="cart-tab" data-tab="cart" role="tab" aria-selected="false">Carrito <span id="tab-cart-count">(0)</span></button>
-                    <button class="cart-tab" data-tab="checkout" role="tab" aria-selected="false">Finalizar Compra</button>
+                    <button class="cart-tab active" data-tab="products" role="tab" aria-selected="true" aria-controls="products-section">Productos</button>
+                    <button class="cart-tab" data-tab="cart" role="tab" aria-selected="false" aria-controls="cart-section">Carrito <span id="tab-cart-count">(0)</span></button>
+                    <button class="cart-tab" data-tab="checkout" role="tab" aria-selected="false" aria-controls="checkout-section">Finalizar Compra</button>
                 </div>
                 
                 <!-- Sección de Productos -->
@@ -152,29 +192,29 @@
                         <div class="checkout-form">
                             <div class="form-group">
                                 <label class="form-label" for="customer-name">Nombre Completo *</label>
-                                <input type="text" id="customer-name" class="form-input" required aria-required="true">
-                                <span class="validation-message" id="name-error"></span>
+                                <input type="text" id="customer-name" class="form-input" required aria-required="true" aria-describedby="name-error">
+                                <span class="validation-message" id="name-error" role="alert"></span>
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="customer-email">Email *</label>
-                                <input type="email" id="customer-email" class="form-input" required aria-required="true">
-                                <span class="validation-message" id="email-error"></span>
+                                <input type="email" id="customer-email" class="form-input" required aria-required="true" aria-describedby="email-error">
+                                <span class="validation-message" id="email-error" role="alert"></span>
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="customer-phone">Teléfono *</label>
-                                <input type="tel" id="customer-phone" class="form-input" required aria-required="true">
-                                <span class="validation-message" id="phone-error"></span>
+                                <input type="tel" id="customer-phone" class="form-input" required aria-required="true" aria-describedby="phone-error">
+                                <span class="validation-message" id="phone-error" role="alert"></span>
                             </div>
                             <div class="form-group full-width">
                                 <label class="form-label" for="customer-address">Dirección *</label>
-                                <input type="text" id="customer-address" class="form-input" required aria-required="true">
-                                <span class="validation-message" id="address-error"></span>
+                                <input type="text" id="customer-address" class="form-input" required aria-required="true" aria-describedby="address-error">
+                                <span class="validation-message" id="address-error" role="alert"></span>
                             </div>
                             
                             <!-- Método de Pago -->
                             <div class="form-group full-width">
                                 <label class="form-label">Método de Pago *</label>
-                                <div class="payment-methods" role="radiogroup">
+                                <div class="payment-methods" role="radiogroup" aria-label="Selecciona método de pago">
                                     <div class="payment-method selected" data-method="transferencia" role="radio" aria-checked="true" tabindex="0">
                                         <i class="fas fa-university payment-icon" aria-hidden="true"></i>
                                         <div class="payment-name">Transferencia</div>
@@ -233,11 +273,12 @@
         </div>
     </div>
 
-    <!-- Scripts - ORDEN CORREGIDO -->
+    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="assets/js/products.js"></script>
     <script src="assets/js/pdf-generator.js"></script>
     <script src="assets/js/cart.js"></script>
+    <script src="assets/js/rates-panel.js"></script>
     <script src="assets/js/app.js"></script>
 </body>
 </html>
