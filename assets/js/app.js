@@ -345,13 +345,6 @@ function initApp() {
     document.body.classList.add('app-loaded');
     
     logEvent('app_ready');
-    
-    // Asegurar que el PDF Generator esté disponible
-    if (typeof window.downloadOrderPDF === 'function') {
-        console.log('✅ PDF Generator disponible');
-    } else {
-        console.warn('⚠️ PDF Generator no disponible');
-    }
 }
 
 // Configurar event listeners

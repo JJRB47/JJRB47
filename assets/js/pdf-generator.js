@@ -1134,8 +1134,6 @@ if (typeof window !== 'undefined') {
     window.toTitleCase = toTitleCase;
     window.setPDFLanguage = setPDFLanguage;
     window.PDF_CONFIG = PDF_CONFIG;
-    window.showPDFNotification = showPDFNotification;
-    window.validateOrderData = validateOrderData;
 }
 
 // Si es módulo, exportar
@@ -1151,8 +1149,7 @@ if (typeof module !== 'undefined' && module.exports) {
         PDF_CONFIG,
         validateOrderData,
         trackPDFGeneration,
-        setPDFLanguage,
-        showPDFNotification
+        setPDFLanguage
     };
 }
 

@@ -602,9 +602,6 @@ async function processOrder() {
                 cartLogger.error('Error generando PDF:', pdfError);
                 showNotification('Error generando PDF, continuando con el pedido...', 'warning');
             }
-        } else {
-            // Si no hay función de PDF, continuar sin PDF
-            showNotification('Pedido procesado correctamente (PDF no disponible)', 'success');
         }
         
         // Preparar mensaje de WhatsApp
@@ -727,7 +724,6 @@ window.resetVersionSelectors = resetVersionSelectors;
 window.calculateCartTotals = calculateCartTotals;
 window.clearCart = clearCart;
 window.getCartItem = getCartItem;
-window.showNotification = showNotification;
 
 // Asegurar que las variables globales estén disponibles
 window.cart = cart;
