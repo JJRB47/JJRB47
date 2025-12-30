@@ -19,106 +19,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
     
-    <!-- Estilos CSS Corregido y Compatibilizado -->
+    <!-- Estilos -->
     <link rel="stylesheet" href="assets/css/style.css">
-    
-    <!-- Estilos adicionales para notificaciones -->
-    <style id="notification-styles">
-        .custom-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            z-index: 1001;
-            font-weight: 500;
-            max-width: 300px;
-            transform: translateY(-20px);
-            opacity: 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .custom-notification.success {
-            background: var(--success-color);
-            color: white;
-        }
-        
-        .custom-notification.error {
-            background: var(--error-color);
-            color: white;
-        }
-        
-        .custom-notification.warning {
-            background: var(--warning-color);
-            color: white;
-        }
-        
-        @keyframes fadeOut {
-            from { opacity: 1; transform: translateY(0); }
-            to { opacity: 0; transform: translateY(-20px); }
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        .pdf-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #4CAF50;
-            color: white;
-            padding: 12px 18px;
-            border-radius: 6px;
-            z-index: 99999;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            animation: pdfFadeIn 0.4s ease, pdfFadeOut 0.5s ease 2.5s forwards;
-            max-width: 350px;
-            word-wrap: break-word;
-        }
-        
-        .pdf-notification.error {
-            background: #f44336;
-        }
-        
-        .pdf-notification.warning {
-            background: #ff9800;
-        }
-        
-        @keyframes pdfFadeIn {
-            from { 
-                opacity: 0; 
-                transform: translateY(-15px) scale(0.95); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0) scale(1); 
-            }
-        }
-        
-        @keyframes pdfFadeOut {
-            from { 
-                opacity: 1; 
-                transform: translateY(0) scale(1); 
-            }
-            to { 
-                opacity: 0; 
-                transform: translateY(-15px) scale(0.95); 
-            }
-        }
-    </style>
 </head>
 <body>
     <!-- Contenedor principal -->
@@ -331,10 +233,8 @@
         </div>
     </div>
 
-    <!-- Scripts JavaScript - Versión Corregida y Compatibilizada -->
+    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <!-- Archivos JavaScript en orden correcto -->
     <script src="assets/js/products.js"></script>
     <script src="assets/js/pdf-generator.js"></script>
     <script src="assets/js/cart.js"></script>
