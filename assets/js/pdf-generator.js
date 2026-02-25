@@ -9,10 +9,11 @@ const PDF_CONFIG = {
     primaryColor: [26, 54, 93],
     accentColor: [212, 175, 55],
     watermark: 'JJRB',
-    // NUEVO: URLs para las imágenes de logo y marca de agua
-    logoUrl: 'https://z-cdn-media.chatglm.cn/files/d1960e89-6842-4656-b657-177071542d53.png?auth_key=1867059512-6ea27d8795104e26b1b5c7d6774e3789-0-c0918acbbf655f26fb7aadc343c183ca',
-    watermarkUrl: 'https://z-cdn-media.chatglm.cn/files/ac902b2d-e518-4d9c-a84b-ace651cddec6.jpg?auth_key=1867059512-18a4958acef7464992e095d26cd5ce50-0-a57c93bfafc4286b20bc45b4aff7170a'
+    // Esta es la ruta que configuramos:
+    logoUrl: 'assets/logo-jrb.jpg', 
+    watermarkUrl: 'assets/logo-jrb.jpg' // Puedes usar el mismo logo como marca de agua
 };
+
 
 // Sistema de logging mejorado
 const pdfLogger = {
