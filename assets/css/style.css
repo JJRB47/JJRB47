@@ -190,6 +190,155 @@ h1::after {
     letter-spacing: 0.5px;
 }
 
+/* ─── Hero description ─── */
+.hero-description {
+    font-size: 0.92em;
+    color: var(--text-gray);
+    line-height: 1.75;
+    max-width: 600px;
+    margin: 0 auto 28px;
+    padding: 0 8px;
+}
+
+/* ─── Categorías de servicio ─── */
+.service-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+    max-width: 620px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.svc-cat {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    text-align: left;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+.svc-cat::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent-color);
+    border-radius: 3px 0 0 3px;
+    opacity: 0.6;
+}
+.svc-cat:hover {
+    background: rgba(255,255,255,0.055);
+    border-color: var(--border-accent);
+    transform: translateX(4px);
+}
+.svc-cat:hover::before { opacity: 1; }
+
+.svc-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    background: rgba(212,175,55,0.12);
+    border: 1px solid rgba(212,175,55,0.25);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.2em;
+    color: var(--accent-color);
+    transition: var(--transition);
+}
+.svc-cat:hover .svc-icon { background: rgba(212,175,55,0.2); }
+
+.svc-icon.svc-phone {
+    background: rgba(37,211,102,0.1);
+    border-color: rgba(37,211,102,0.25);
+    color: var(--whatsapp-color);
+}
+.svc-cat:hover .svc-icon.svc-phone { background: rgba(37,211,102,0.18); }
+
+.svc-icon.svc-store {
+    background: rgba(0,97,255,0.1);
+    border-color: rgba(0,97,255,0.25);
+    color: #5b9bd5;
+}
+.svc-cat:hover .svc-icon.svc-store { background: rgba(0,97,255,0.18); }
+
+.svc-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.svc-info strong {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.88em;
+    font-weight: 700;
+    color: var(--text-light);
+    letter-spacing: 0.2px;
+}
+.svc-info span {
+    font-size: 0.75em;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* ─── Trust strip ─── */
+.trust-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0;
+    padding: 16px 20px;
+    background: rgba(212,175,55,0.05);
+    border: 1px solid rgba(212,175,55,0.2);
+    border-radius: var(--radius-md);
+    margin-bottom: 4px;
+}
+.trust-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    min-width: 80px;
+    padding: 4px 8px;
+}
+.trust-item strong {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.05em;
+    font-weight: 800;
+    color: var(--accent-color);
+    line-height: 1;
+}
+.trust-item span {
+    font-size: 0.68em;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.3;
+}
+.trust-sep {
+    width: 1px;
+    height: 32px;
+    background: rgba(212,175,55,0.2);
+    flex-shrink: 0;
+}
+
+/* ─── Footer tagline ─── */
+.footer-tagline {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.78em;
+    color: var(--accent-color);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 6px;
+    opacity: 0.8;
+}
+
 /* ─── Grid de enlaces ─── */
 .links-grid {
     display: grid;
@@ -1017,6 +1166,14 @@ h1::after {
     .main-container { padding: 32px 18px 28px; border-radius: var(--radius-md); }
     h1 { font-size: 1.55em; letter-spacing: 0.5px; }
     .tagline { font-size: 0.76em; }
+    .hero-description { font-size: 0.83em; margin-bottom: 20px; }
+    .svc-cat { padding: 11px 14px; }
+    .svc-icon { width: 36px; height: 36px; font-size: 1em; }
+    .svc-info strong { font-size: 0.82em; }
+    .trust-strip { padding: 12px 10px; gap: 0; }
+    .trust-item { min-width: 60px; padding: 3px 4px; }
+    .trust-item strong { font-size: 0.9em; }
+    .trust-sep { height: 24px; }
     .links-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .link-button { min-height: 90px; padding: 18px 10px 14px; }
     .link-button i { font-size: 1.5em; }
