@@ -1,379 +1,248 @@
 // =======================================================================
-// CONFIGURACIÓN DE PRODUCTOS - SOLO WINDOWS Y OFFICE
+// products.js — JJRB Tienda v3.0
+// Logos SVG reales: Windows flag + Office icon en tarjetas y carrito
 // =======================================================================
 
-const BUSINESS_INFO = {
-    whatsappNumber: '584122891366',
-    paypalLink: 'https://www.paypal.me/rangeljo',
-    businessName: 'Jonathan Jose Rangel Betancourt (JJRB)',
+const BUSINESS_INFO = Object.freeze({
+    whatsappNumber:     '584122891366',
+    paypalLink:         'https://www.paypal.me/rangeljo',
+    businessName:       'Jonathan Jose Rangel Betancourt (JJRB)',
     discountPercentage: 0.30,
-    email: 'rangeljose4747@gmail.com',
-    currency: 'USD'
-};
+    email:              'rangeljose4747@gmail.com',
+    currency:           'USD'
+});
 
-// Sistema de logging para productos
 const productLogger = {
-    info: (msg) => console.info(`[PRODUCTS] ${new Date().toISOString()}: ${msg}`),
+    info:  (msg)        => console.info (`[PRODUCTS] ${new Date().toISOString()}: ${msg}`),
+    warn:  (msg)        => console.warn (`[PRODUCTS] ${new Date().toISOString()}: ${msg}`),
     error: (msg, error) => console.error(`[PRODUCTS] ${new Date().toISOString()}: ${msg}`, error)
 };
 
-// Productos - Solo Windows y Office
+// ─── SVG logos inline ────────────────────────────────────────────────────
+
+// Logo Windows 11 (cuatro cuadros de colores)
+const SVG_WINDOWS = `
+<svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <rect x="4"  y="4"  width="38" height="38" rx="4" fill="#F25022"/>
+  <rect x="46" y="4"  width="38" height="38" rx="4" fill="#7FBA00"/>
+  <rect x="4"  y="46" width="38" height="38" rx="4" fill="#00A4EF"/>
+  <rect x="46" y="46" width="38" height="38" rx="4" fill="#FFB900"/>
+</svg>`;
+
+// Logo Microsoft Office (letra W estilizada sobre fondo naranja)
+const SVG_OFFICE = `
+<svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <rect width="88" height="88" rx="10" fill="#D83B01"/>
+  <text x="50%" y="58%" 
+        dominant-baseline="middle" 
+        text-anchor="middle"
+        font-family="'Segoe UI', Arial, sans-serif"
+        font-weight="700"
+        font-size="52"
+        fill="white">O</text>
+  <circle cx="68" cy="24" r="10" fill="#FF8C00"/>
+</svg>`;
+
+// ─── Catálogo ────────────────────────────────────────────────────────────
 const products = [
     {
         id: 1,
-        name: "Instalación de Windows",
-        icon: "fab fa-windows",
-        logoClass: "windows-card",
-        category: "sistema-operativo",
-        description: "Instalación profesional del sistema operativo Windows con licencia digital. Incluye activación permanente y soporte técnico.",
-        features: ["Activación permanente", "Soporte técnico", "Actualizaciones", "Instalación remota"],
+        name: 'Instalación de Windows',
+        svgLogo: SVG_WINDOWS,
+        logoClass: 'windows-logo-svg',
+        logoBgClass: 'win-bg',
+        cardClass: 'windows-card',
+        // Icono FontAwesome para el carrito (uso interno)
+        icon: 'fab fa-windows',
+        iconClass: 'windows-icon',
+        category: 'sistema-operativo',
+        description: 'Instalación profesional con licencia digital. Activación permanente y soporte técnico incluido.',
+        features: ['Activación permanente', 'Soporte técnico', 'Actualizaciones', 'Instalación remota'],
         versions: [
-            {id: "win7", name: "Windows 7 Professional", price: 10.00, requirements: "2GB RAM, 20GB HD"},
-            {id: "win8", name: "Windows 8/8.1 Pro", price: 10.00, requirements: "2GB RAM, 20GB HD"},
-            {id: "win10", name: "Windows 10 Pro", price: 15.00, requirements: "4GB RAM, 32GB HD"},
-            {id: "win11", name: "Windows 11 Pro", price: 15.00, requirements: "4GB RAM, 64GB HD, TPM 2.0"}
+            { id: 'win7',  name: 'Windows 7 Professional', price: 10.00, requirements: '2GB RAM, 20GB HD' },
+            { id: 'win8',  name: 'Windows 8/8.1 Pro',      price: 10.00, requirements: '2GB RAM, 20GB HD' },
+            { id: 'win10', name: 'Windows 10 Pro',          price: 15.00, requirements: '4GB RAM, 32GB HD' },
+            { id: 'win11', name: 'Windows 11 Pro',          price: 15.00, requirements: '4GB RAM, 64GB HD, TPM 2.0' }
         ]
     },
     {
         id: 2,
-        name: "Instalación de Microsoft Office", 
-        icon: "fas fa-file-excel",
-        logoClass: "office-card",
-        category: "ofimatica",
-        description: "Instalación completa de Microsoft Office con licencia digital. Todas las aplicaciones incluidas.",
-        features: ["Word, Excel, PowerPoint", "Outlook incluido", "Activación permanente", "Soporte técnico"],
+        name: 'Instalación de Microsoft Office',
+        svgLogo: SVG_OFFICE,
+        logoClass: 'office-logo-svg',
+        logoBgClass: 'off-bg',
+        cardClass: 'office-card',
+        icon: 'fas fa-file-excel',
+        iconClass: 'office-icon',
+        category: 'ofimatica',
+        description: 'Suite Office completa con licencia digital. Word, Excel, PowerPoint, Outlook y más.',
+        features: ['Word, Excel, PowerPoint', 'Outlook incluido', 'Activación permanente', 'Soporte técnico'],
         versions: [
-            {id: "office2010", name: "Office 2010", price: 10.00, requirements: "1GB RAM, 3GB HD"},
-            {id: "office2013", name: "Office 2013", price: 10.00, requirements: "1GB RAM, 3GB HD"},
-            {id: "office2016", name: "Office 2016", price: 10.00, requirements: "2GB RAM, 3GB HD"},
-            {id: "office2019", name: "Office 2019", price: 15.00, requirements: "2GB RAM, 4GB HD"},
-            {id: "office2021", name: "Office 2021", price: 15.00, requirements: "4GB RAM, 4GB HD"}
+            { id: 'office2010', name: 'Office 2010', price: 10.00, requirements: '1GB RAM, 3GB HD' },
+            { id: 'office2013', name: 'Office 2013', price: 10.00, requirements: '1GB RAM, 3GB HD' },
+            { id: 'office2016', name: 'Office 2016', price: 10.00, requirements: '2GB RAM, 3GB HD' },
+            { id: 'office2019', name: 'Office 2019', price: 15.00, requirements: '2GB RAM, 4GB HD' },
+            { id: 'office2021', name: 'Office 2021', price: 15.00, requirements: '4GB RAM, 4GB HD' }
         ]
     }
 ];
 
 // =======================================================================
-// FUNCIONES UTILITARIAS CENTRALIZADAS
+// UTILIDADES
 // =======================================================================
 
-// Obtener saludo según la hora del día
 function getGreetingByTime() {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return "Buenos días";
-    if (hour >= 12 && hour < 18) return "Buenas tardes";
-    return "Buenas noches";
+    const h = new Date().getHours();
+    if (h >= 5  && h < 12) return 'Buenos días';
+    if (h >= 12 && h < 18) return 'Buenas tardes';
+    return 'Buenas noches';
 }
 
-// Obtener el nombre del método de pago
 function getPaymentMethodName(method) {
-    const methods = {
-        'transferencia': 'Transferencia Bancaria',
-        'paypal': 'PayPal',
-        'efectivo': `Efectivo (${(BUSINESS_INFO.discountPercentage * 100)}% descuento)`
+    const map = {
+        transferencia: 'Transferencia Bancaria',
+        paypal:        'PayPal',
+        efectivo:      `Efectivo (${BUSINESS_INFO.discountPercentage * 100}% descuento)`
     };
-    return methods[method] || 'Transferencia Bancaria';
+    return map[method] || 'Transferencia Bancaria';
 }
 
-// Sanitizar inputs - Versión segura mejorada
 function sanitizeInput(input) {
     if (input === null || input === undefined) return '';
-    
-    // Convertir a string
-    const str = String(input);
-    
-    // Eliminar tags HTML y scripts
     const div = document.createElement('div');
-    div.textContent = str;
-    let sanitized = div.innerHTML;
-    
-    // Eliminar caracteres peligrosos
-    sanitized = sanitized
-        .replace(/[<>]/g, '') // Eliminar tags HTML
-        .replace(/javascript:/gi, 'javascript-disabled:') // Neutralizar javascript:
-        .replace(/on\w+=/gi, 'data-on=') // Neutralizar event handlers
-        .replace(/data:/gi, 'data-disabled:') // Neutralizar data URIs
-        .trim();
-    
-    // Limitar longitud
-    return sanitized.substring(0, 500);
+    div.textContent = String(input);
+    return div.innerHTML
+        .replace(/javascript:/gi, 'javascript-disabled:')
+        .replace(/on\w+=/gi, 'data-on=')
+        .replace(/data:/gi, 'data-disabled:')
+        .trim().substring(0, 500);
 }
-
-// Función de sanitización específica para nombres
 function sanitizeName(name) {
-    const sanitized = sanitizeInput(name);
-    return sanitized
-        .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\.]/g, '') // Solo letras, espacios, guiones y puntos
-        .replace(/\s+/g, ' ') // Eliminar múltiples espacios
-        .trim();
+    return sanitizeInput(name).replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-.]/g, '').replace(/\s+/g, ' ').trim();
 }
-
-// Función de sanitización específica para emails
 function sanitizeEmail(email) {
-    const sanitized = sanitizeInput(email).toLowerCase();
-    return sanitized
-        .replace(/[^a-zA-Z0-9@\.\-_]/g, '') // Solo caracteres válidos para email
-        .trim();
+    return sanitizeInput(email).toLowerCase().replace(/[^a-zA-Z0-9@.\-_]/g, '').trim();
 }
-
-// Función de sanitización específica para teléfonos
 function sanitizePhone(phone) {
-    const sanitized = sanitizeInput(phone);
-    return sanitized
-        .replace(/[^\d\s\-\+\(\)]/g, '') // Solo números y caracteres de teléfono
-        .replace(/\s+/g, ' ') // Eliminar múltiples espacios
-        .trim();
+    return sanitizeInput(phone).replace(/[^\d\s\-+()]/g, '').replace(/\s+/g, ' ').trim();
 }
 
-// Validar email
 function validateEmail(email) {
     if (!email) return false;
-    
-    const emailStr = String(email).toLowerCase();
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
-    // Validación básica de formato
-    if (!re.test(emailStr)) return false;
-    
-    // Validar longitud
-    if (emailStr.length > 254) return false;
-    
-    // Validar partes del email
-    const parts = emailStr.split('@');
-    if (parts[0].length > 64) return false;
-    
-    const domainParts = parts[1].split('.');
-    if (domainParts.some(part => part.length > 63)) return false;
-    
-    return true;
+    const s = String(email).toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s) || s.length > 254) return false;
+    const [local, domain] = s.split('@');
+    return local.length <= 64 && !domain.split('.').some(p => p.length > 63);
 }
-
-// Validar teléfono
 function validatePhone(phone) {
     if (!phone) return false;
-    
-    const phoneStr = String(phone);
-    
-    // Eliminar caracteres no numéricos para validación
-    const numericOnly = phoneStr.replace(/[^\d]/g, '');
-    
-    // Validar longitud mínima (generalmente 10 dígitos para números internacionales)
-    if (numericOnly.length < 10) return false;
-    
-    // Validar longitud máxima
-    if (numericOnly.length > 15) return false;
-    
-    // Validar formato básico (contiene solo números y caracteres de teléfono válidos)
-    const re = /^[\+]?[0-9\s\-\(\)]{10,}$/;
-    return re.test(phoneStr);
+    const d = String(phone).replace(/\D/g, '');
+    return d.length >= 10 && d.length <= 15 && /^[+]?[\d\s\-()]{10,}$/.test(String(phone));
 }
 
-// Generar número de pedido único
 function generateOrderNumber() {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substr(2, 6);
-    const date = new Date();
-    
-    // Formato: JJRB-YYYYMMDD-HHMMSS-RANDOM
-    const dateStr = date.getFullYear().toString() +
-                   (date.getMonth() + 1).toString().padStart(2, '0') +
-                   date.getDate().toString().padStart(2, '0');
-    
-    const timeStr = date.getHours().toString().padStart(2, '0') +
-                   date.getMinutes().toString().padStart(2, '0') +
-                   date.getSeconds().toString().padStart(2, '0');
-    
-    return `JJRB-${dateStr}-${timeStr}-${random.toUpperCase()}`;
+    const now    = new Date();
+    const date   = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+    const time   = `${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}`;
+    const random = Math.random().toString(36).substr(2, 6).toUpperCase();
+    return `JJRB-${date}-${time}-${random}`;
 }
 
-// Formatear precio
 function formatPrice(price) {
     return `$${parseFloat(price).toFixed(2)}`;
 }
 
 // =======================================================================
-// FUNCIONES DE PRODUCTOS
+// RENDERIZADO DE PRODUCTOS (logo SVG real en las tarjetas)
 // =======================================================================
 
-// Renderizar productos en el grid
 function renderProducts() {
+    const grid = document.getElementById('products-grid');
+    if (!grid) { productLogger.error('"products-grid" no encontrado.'); return; }
+
+    if (!products.length) {
+        grid.innerHTML = `
+            <div class="empty-products" style="grid-column:1/-1">
+                <div class="empty-cart-icon"><i class="fas fa-box-open"></i></div>
+                <h3>No hay productos disponibles</h3>
+                <p>Contacta al administrador.</p>
+            </div>`;
+        return;
+    }
+
     try {
-        const productsGrid = document.getElementById('products-grid');
-        if (!productsGrid) {
-            productLogger.error('Elemento con id "products-grid" no encontrado.');
-            return;
-        }
-        
-        // Validar que hay productos
-        if (!products || products.length === 0) {
-            productsGrid.innerHTML = `
-                <div class="empty-products" style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-gray);">
-                    <i class="fas fa-box-open" style="font-size: 3em; margin-bottom: 15px;"></i>
-                    <h3>No hay productos disponibles</h3>
-                    <p>Por favor contacta al administrador.</p>
-                </div>
-            `;
-            return;
-        }
-        
-        // Renderizar cada producto
-        productsGrid.innerHTML = products.map(product => {
-            // Validar que el producto tiene versiones
-            const hasVersions = product.versions && product.versions.length > 0;
-            
+        grid.innerHTML = products.map(p => {
+            const hasV = Array.isArray(p.versions) && p.versions.length > 0;
             return `
-                <div class="product-card ${product.logoClass}" data-product-id="${product.id}" role="article">
-                    <i class="${product.icon} product-icon ${product.id === 1 ? 'windows-icon' : 'office-icon'}" 
-                       aria-hidden="true"></i>
-                    <h3 class="product-title">${product.name}</h3>
-                    <p class="product-description">${product.description}</p>
-                    
-                    ${hasVersions ? `
-                        <select id="version-select-${product.id}" class="version-select" 
-                                aria-label="Seleccionar versión de ${product.name}">
-                            ${product.versions.map(version => `
-                                <option value="${version.id}" data-price="${version.price}" 
-                                        ${version.requirements ? `title="${version.requirements}"` : ''}>
-                                    ${version.name} - ${formatPrice(version.price)}
-                                </option>
-                            `).join('')}
-                        </select>
-                        
-                        <button class="add-to-cart-btn" data-product-id="${product.id}" 
-                                aria-label="Agregar ${product.name} al carrito">
-                            <i class="fas fa-cart-plus" aria-hidden="true"></i> Agregar al Carrito
-                        </button>
-                    ` : `
-                        <div class="product-unavailable" style="color: var(--error-color); padding: 10px;">
-                            <i class="fas fa-exclamation-circle"></i> No disponible temporalmente
-                        </div>
-                    `}
-                    
-                    ${product.features ? `
-                        <div class="product-features" style="margin-top: 15px; font-size: 0.9em; color: var(--text-gray);">
-                            <strong>Incluye:</strong> ${product.features.join(', ')}
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        }).join('');
-        
-        productLogger.info(`Productos renderizados: ${products.length}`);
-        
-    } catch (error) {
-        productLogger.error('Error en renderProducts:', error);
-        
-        // Mostrar mensaje de error en la UI
-        const productsGrid = document.getElementById('products-grid');
-        if (productsGrid) {
-            productsGrid.innerHTML = `
-                <div class="product-error" style="grid-column: 1/-1; text-align: center; padding: 40px;">
-                    <i class="fas fa-exclamation-triangle" style="color: var(--error-color); font-size: 3em;"></i>
-                    <h3>Error cargando productos</h3>
-                    <p>Por favor recarga la página o contacta al administrador.</p>
-                    <button onclick="window.safeReload()" style="margin-top: 15px; padding: 10px 20px;">
-                        Recargar página
+            <div class="product-card ${p.cardClass}" data-product-id="${p.id}" role="article" aria-label="${p.name}">
+                <img class="${p.logoClass}"
+                     src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(p.svgLogo)}"
+                     alt="${p.name} logo"
+                     width="56" height="56">
+                <h3 class="product-title">${p.name}</h3>
+                <p class="product-description">${p.description}</p>
+                ${hasV ? `
+                    <select id="version-select-${p.id}" class="version-select"
+                            aria-label="Seleccionar versión de ${p.name}">
+                        ${p.versions.map(v =>
+                            `<option value="${v.id}" data-price="${v.price}" title="${v.requirements||''}">${v.name} — ${formatPrice(v.price)}</option>`
+                        ).join('')}
+                    </select>
+                    <button class="add-to-cart-btn" data-product-id="${p.id}"
+                            aria-label="Agregar ${p.name} al carrito">
+                        <i class="fas fa-cart-plus" aria-hidden="true"></i> Agregar al Carrito
                     </button>
-                </div>
-            `;
-        }
+                ` : `
+                    <div style="color:var(--error-color);padding:10px;font-size:.85em;">
+                        <i class="fas fa-exclamation-circle"></i> No disponible temporalmente
+                    </div>
+                `}
+                ${p.features ? `
+                    <div class="product-features">
+                        <strong>Incluye:</strong> ${p.features.join(' · ')}
+                    </div>
+                ` : ''}
+            </div>`;
+        }).join('');
+
+        productLogger.info(`Productos renderizados: ${products.length}`);
+    } catch (err) {
+        productLogger.error('Error en renderProducts:', err);
+        grid.innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:40px;">
+                <i class="fas fa-exclamation-triangle" style="color:var(--error-color);font-size:3em;"></i>
+                <h3 style="margin:12px 0 8px;">Error cargando productos</h3>
+                <p>Por favor recarga la página.</p>
+                <button onclick="window.safeReload()" style="margin-top:12px;padding:10px 20px;cursor:pointer;">Recargar</button>
+            </div>`;
     }
 }
 
-// Obtener producto por ID
+// ─── Accesores ────────────────────────────────────────────────────────────
 function getProductById(productId) {
-    if (!productId) {
-        productLogger.warn('getProductById llamado sin ID');
-        return null;
-    }
-    
-    const id = parseInt(productId);
-    const product = products.find(p => p.id === id);
-    
-    if (!product) {
-        productLogger.warn(`Producto no encontrado con ID: ${productId}`);
-    }
-    
-    return product || null;
+    if (!productId) { productLogger.warn('getProductById sin ID'); return null; }
+    return products.find(p => p.id === parseInt(productId, 10)) || null;
 }
-
-// Obtener versión de producto
 function getProductVersion(productId, versionId) {
-    const product = getProductById(productId);
-    if (!product) return null;
-    
-    const version = product.versions?.find(v => v.id === versionId);
-    
-    if (!version) {
-        productLogger.warn(`Versión ${versionId} no encontrada para producto ${productId}`);
-    }
-    
-    return version || null;
+    return getProductById(productId)?.versions?.find(v => v.id === versionId) || null;
 }
+function getAllProducts()            { return [...products]; }
+function getProductsByCategory(cat) { return products.filter(p => p.category === cat); }
+function checkProductAvailability(pid, vid) { return !!getProductVersion(pid, vid); }
 
-// Obtener todos los productos
-function getAllProducts() {
-    return [...products]; // Devolver copia para evitar mutaciones
-}
+// ─── Exports ──────────────────────────────────────────────────────────────
+Object.assign(window, {
+    BUSINESS_INFO, SVG_WINDOWS, SVG_OFFICE,
+    getGreetingByTime, getPaymentMethodName,
+    sanitizeInput, sanitizeName, sanitizeEmail, sanitizePhone,
+    validateEmail, validatePhone,
+    generateOrderNumber, formatPrice,
+    renderProducts, getProductById, getProductVersion,
+    getAllProducts, getProductsByCategory, checkProductAvailability
+});
 
-// Obtener productos por categoría
-function getProductsByCategory(category) {
-    return products.filter(p => p.category === category);
-}
-
-// Actualizar precio de un producto (si fuera necesario)
-function updateProductPrice(productId, versionId, newPrice) {
-    const product = getProductById(productId);
-    if (!product) return false;
-    
-    const versionIndex = product.versions?.findIndex(v => v.id === versionId);
-    if (versionIndex === -1 || versionIndex === undefined) return false;
-    
-    product.versions[versionIndex].price = newPrice;
-    productLogger.info(`Precio actualizado: ${product.name} - ${product.versions[versionIndex].name} = $${newPrice}`);
-    
-    // Re-renderizar productos si es necesario
-    renderProducts();
-    
-    return true;
-}
-
-// Verificar disponibilidad de productos
-function checkProductAvailability(productId, versionId) {
-    const version = getProductVersion(productId, versionId);
-    if (!version) return false;
-    
-    // Aquí podrías agregar lógica de inventario si fuera necesario
-    return true;
-}
-
-// Exportar información de negocio
-window.BUSINESS_INFO = BUSINESS_INFO;
-
-// Asegurar que las funciones auxiliares estén disponibles globalmente
-window.getPaymentMethodName = getPaymentMethodName;
-window.getGreetingByTime = getGreetingByTime;
-window.sanitizeInput = sanitizeInput;
-window.sanitizeName = sanitizeName;
-window.sanitizeEmail = sanitizeEmail;
-window.sanitizePhone = sanitizePhone;
-window.validateEmail = validateEmail;
-window.validatePhone = validatePhone;
-window.generateOrderNumber = generateOrderNumber;
-window.formatPrice = formatPrice;
-
-// Exportar funciones para uso en otros archivos
-window.renderProducts = renderProducts;
-window.getProductById = getProductById;
-window.getProductVersion = getProductVersion;
-window.getAllProducts = getAllProducts;
-window.getProductsByCategory = getProductsByCategory;
-window.updateProductPrice = updateProductPrice;
-window.checkProductAvailability = checkProductAvailability;
-
-// Inicializar productos cuando el DOM esté listo
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', renderProducts);
 } else {
-    // DOM ya está listo
-    setTimeout(renderProducts, 100); // Pequeño delay para asegurar que todo esté listo
+    renderProducts();
 }
