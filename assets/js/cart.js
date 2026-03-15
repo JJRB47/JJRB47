@@ -1,6 +1,7 @@
 // =======================================================================
-// cart.js — JJRB Tienda v3.0
-// Items del carrito con logo SVG real de Windows/Office
+// cart.js — JJRB Tienda v3.1
+// Novedad: EmailJS integrado en processOrder()
+// Al confirmar un pedido se envía el resumen + PDF adjunto a tu email.
 // =======================================================================
 
 let cart          = [];
@@ -32,9 +33,9 @@ function getNextCartId() {
 
 function calculateCartTotals() {
     try {
-        const subtotal    = cart.reduce((s, i) => s + (i.price||0) * (i.quantity||1), 0);
-        const discPct     = window.BUSINESS_INFO?.discountPercentage ?? 0.30;
-        const discount    = paymentMethod === 'efectivo' ? subtotal * discPct : 0;
+        const subtotal = cart.reduce((s, i) => s + (i.price||0) * (i.quantity||1), 0);
+        const discPct  = window.BUSINESS_INFO?.discountPercentage ?? 0.30;
+        const discount = paymentMethod === 'efectivo' ? subtotal * discPct : 0;
         return {
             subtotal: parseFloat(subtotal.toFixed(2)),
             discount: parseFloat(discount.toFixed(2)),
@@ -50,7 +51,7 @@ function getCartItem(cartId) {
     return cart.find(i => i.cartId === cartId) || null;
 }
 
-// ─── Agregar ───────────────────────────────────────────────────────────
+// ─── Agregar ──────────────────────────────────────────────────────────────
 function addToCart(productId) {
     try {
         const product = window.getProductById?.(productId);
@@ -73,19 +74,18 @@ function addToCart(productId) {
             showNotification(`${product.name} — ${versionName} (cantidad aumentada)`);
         } else {
             cart.push({
-                cartId:       getNextCartId(),
+                cartId:      getNextCartId(),
                 productId,
-                name:         product.name,
+                name:        product.name,
                 versionId,
                 versionName,
                 price,
-                // guardamos el SVG para mostrarlo en el carrito
-                svgLogo:      product.svgLogo || '',
-                logoBgClass:  product.logoBgClass || '',
-                icon:         product.icon,
-                iconClass:    product.iconClass,
-                quantity:     1,
-                addedAt:      new Date().toISOString()
+                svgLogo:     product.svgLogo || '',
+                logoBgClass: product.logoBgClass || '',
+                icon:        product.icon,
+                iconClass:   product.iconClass,
+                quantity:    1,
+                addedAt:     new Date().toISOString()
             });
             showNotification(`${product.name} — ${versionName} agregado`);
         }
@@ -105,14 +105,14 @@ function animateCartButton() {
     setTimeout(() => btn.classList.remove('pulse'), 400);
 }
 
-// ─── Cantidad ──────────────────────────────────────────────────────────
+// ─── Cantidad ──────────────────────────────────────────────────────────────
 function updateQuantity(cartId, change) {
     try {
         const item = getCartItem(cartId);
         if (!item) { showNotification('Ítem no encontrado', 'error'); return; }
         const nq = item.quantity + change;
-        if (nq <= 0)   { removeFromCart(cartId); return; }
-        if (nq > 99)   { showNotification('Máximo 99 por producto', 'warning'); return; }
+        if (nq <= 0)  { removeFromCart(cartId); return; }
+        if (nq > 99)  { showNotification('Máximo 99 por producto', 'warning'); return; }
         item.quantity = nq;
         saveCart(); updateCart(); updateCartDisplay();
         if (document.getElementById('checkout-section')?.classList.contains('active'))
@@ -123,7 +123,7 @@ function updateQuantity(cartId, change) {
     }
 }
 
-// ─── Eliminar ──────────────────────────────────────────────────────────
+// ─── Eliminar ──────────────────────────────────────────────────────────────
 function removeFromCart(cartId) {
     try {
         const idx = cart.findIndex(i => i.cartId === cartId);
@@ -146,7 +146,7 @@ function clearCart() {
     showNotification('Carrito vaciado', 'success');
 }
 
-// ─── Actualizar contador ────────────────────────────────────────────────
+// ─── Contador ──────────────────────────────────────────────────────────────
 function updateCart() {
     try {
         const count      = cart.reduce((t, i) => t + (i.quantity||1), 0);
@@ -171,7 +171,7 @@ function updateCart() {
     }
 }
 
-// ─── Display del carrito con logos SVG ─────────────────────────────────
+// ─── Display del carrito ───────────────────────────────────────────────────
 function updateCartDisplay() {
     try {
         const container  = document.getElementById('cart-items');
@@ -197,11 +197,6 @@ function updateCartDisplay() {
             const itemTotal = (item.price||0) * (item.quantity||1);
             const isMin     = item.quantity <= 1;
 
-            const el = document.createElement('div');
-            el.className = 'cart-item';
-            el.setAttribute('role', 'listitem');
-
-            // Logo SVG o icono FontAwesome como fallback
             const logoHTML = item.svgLogo
                 ? `<div class="cart-item-logo ${_esc(item.logoBgClass||'')}">
                      <img src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(item.svgLogo)}"
@@ -212,6 +207,9 @@ function updateCartDisplay() {
                         aria-hidden="true" style="font-size:1.4rem;"></i>
                    </div>`;
 
+            const el = document.createElement('div');
+            el.className = 'cart-item';
+            el.setAttribute('role', 'listitem');
             el.innerHTML = `
                 <div class="cart-item-info">
                     ${logoHTML}
@@ -238,7 +236,6 @@ function updateCartDisplay() {
                     </button>
                 </div>`;
 
-            // textContent seguro para nombre y versión
             el.querySelector('.cart-item-name').textContent    = item.name || '';
             el.querySelector('.cart-item-version').textContent = item.versionName || '';
             fragment.appendChild(el);
@@ -254,7 +251,7 @@ function updateCartDisplay() {
     }
 }
 
-// ─── Resumen del pedido ─────────────────────────────────────────────────
+// ─── Resumen del pedido ────────────────────────────────────────────────────
 function updateOrderSummary() {
     try {
         const container = document.getElementById('order-items');
@@ -300,7 +297,7 @@ function updateOrderSummary() {
     }
 }
 
-// ─── Método de pago ─────────────────────────────────────────────────────
+// ─── Método de pago ────────────────────────────────────────────────────────
 function selectPaymentMethod(method) {
     try {
         const valid   = ['transferencia', 'paypal', 'efectivo'];
@@ -319,7 +316,71 @@ function selectPaymentMethod(method) {
     }
 }
 
-// ─── Procesar pedido ────────────────────────────────────────────────────
+// =======================================================================
+// ENVÍO POR EMAILJS
+// Genera el PDF en Base64 y lo envía como adjunto a tu email.
+// =======================================================================
+
+async function sendOrderByEmail(orderData) {
+    try {
+        // Verificar que EmailJS está cargado y configurado
+        const cfg = window.EMAILJS_CONFIG;
+        if (!cfg || cfg.PUBLIC_KEY === 'TU_PUBLIC_KEY_AQUI') {
+            cartLogger.warn('EmailJS no configurado. Configura emailjs-config.js');
+            return { success: false, reason: 'not_configured' };
+        }
+
+        if (typeof emailjs === 'undefined') {
+            cartLogger.warn('EmailJS SDK no cargado');
+            return { success: false, reason: 'sdk_missing' };
+        }
+
+        // Inicializar EmailJS (idempotente, no falla si ya está inicializado)
+        emailjs.init(cfg.PUBLIC_KEY);
+
+        // Preparar lista de productos como texto plano
+        const productsList = orderData.cartSnapshot.map((item, i) =>
+            `${i+1}. ${item.name} — ${item.versionName} x${item.quantity} = $${(item.price * item.quantity).toFixed(2)}`
+        ).join('\n');
+
+        // Preparar parámetros del template
+        const templateParams = {
+            to_email:       cfg.TO_EMAIL,
+            order_number:   orderData.orderNum,
+            order_date:     new Date().toLocaleString('es-VE'),
+            customer_name:  orderData.customerInfo.name,
+            customer_email: orderData.customerInfo.email,
+            customer_phone: orderData.customerInfo.phone,
+            customer_address: orderData.customerInfo.address,
+            products_list:  productsList,
+            subtotal:       `$${orderData.totals.subtotal.toFixed(2)}`,
+            discount:       orderData.totals.discount > 0
+                              ? `-$${orderData.totals.discount.toFixed(2)} (30% efectivo)`
+                              : '$0.00',
+            total:          `$${orderData.totals.total.toFixed(2)}`,
+            payment_method: orderData.pmName,
+            pdf_base64:     orderData.pdfBase64 || ''
+        };
+
+        const response = await emailjs.send(
+            cfg.SERVICE_ID,
+            cfg.TEMPLATE_ID,
+            templateParams
+        );
+
+        cartLogger.info(`Email enviado correctamente. Status: ${response.status}`);
+        return { success: true };
+
+    } catch (err) {
+        cartLogger.error('Error enviando email:', err);
+        return { success: false, reason: err.message };
+    }
+}
+
+// =======================================================================
+// PROCESAR PEDIDO — con EmailJS integrado
+// =======================================================================
+
 async function processOrder() {
     try {
         if (!cart.length) { showNotification('El carrito está vacío', 'error'); return; }
@@ -350,45 +411,77 @@ async function processOrder() {
         const totals       = calculateCartTotals();
         const greeting     = window.getGreetingByTime?.() ?? 'Hola';
         const customerInfo = { name, email, phone, address };
-        const orderNumEl   = document.getElementById('order-number');
+        const pmName       = window.getPaymentMethodName?.(paymentMethod) ?? paymentMethod;
+
+        const orderNumEl = document.getElementById('order-number');
         if (orderNumEl) orderNumEl.textContent = orderNum;
 
-        // PDF
-        let pdfGenerated = false;
-        if (typeof window.downloadOrderPDF === 'function') {
+        // Guardar snapshot del carrito ANTES de limpiarlo
+        const cartSnapshot = cart.map(i => ({ ...i }));
+
+        // ─── PDF ────────────────────────────────────────────────────────
+        let pdfBase64     = '';
+        let pdfGenerated  = false;
+
+        if (typeof window.preparePDFData === 'function' &&
+            typeof window.generateOrderPDF === 'function') {
             try {
-                const pdfData = window.preparePDFData?.(cart, customerInfo, orderNum, paymentMethod, totals);
-                if (pdfData) {
-                    const r = await window.downloadOrderPDF(pdfData);
-                    pdfGenerated = r?.success === true;
-                }
+                const pdfData = window.preparePDFData(cart, customerInfo, orderNum, paymentMethod, totals);
+                const doc     = await window.generateOrderPDF(pdfData);
+
+                // Obtener Base64 para adjuntar al email
+                pdfBase64 = doc.output('datauristring'); // data:application/pdf;base64,...
+
+                // También descargar en el dispositivo del cliente
+                const fileName = `Pedido-${orderNum}_${new Date().toISOString().slice(0,10)}.pdf`;
+                doc.save(fileName);
+                pdfGenerated = true;
+
             } catch (pdfErr) {
                 cartLogger.warn(`PDF error: ${pdfErr.message}`);
                 showNotification('Continuando sin PDF...', 'warning');
             }
         }
 
-        // WhatsApp
-        const biz     = window.BUSINESS_INFO ?? {};
-        const waNum   = biz.whatsappNumber ?? '584122891366';
-        const bizName = biz.businessName   ?? 'JJRB';
-        const pmName  = window.getPaymentMethodName?.(paymentMethod) ?? paymentMethod;
+        // ─── EmailJS ─────────────────────────────────────────────────────
+        // Se ejecuta en paralelo con WhatsApp para no bloquear el flujo
+        sendOrderByEmail({
+            orderNum,
+            customerInfo,
+            cartSnapshot,
+            totals,
+            pmName,
+            pdfBase64
+        }).then(result => {
+            if (result.success) {
+                cartLogger.info('Email de pedido enviado correctamente');
+            } else if (result.reason === 'not_configured') {
+                cartLogger.warn('EmailJS no configurado — omitiendo envío de email');
+            } else {
+                cartLogger.warn(`Email no enviado: ${result.reason}`);
+            }
+        });
 
-        let msg = `📋 *PEDIDO — ${bizName}*\n${'─'.repeat(36)}\n${greeting}, aquí mi pedido:\n\n`;
-        msg    += `*📦 N° ${orderNum}*\n\n*👤 Datos:*\n`;
-        msg    += `• Nombre: ${name}\n• Teléfono: ${phone}\n• Email: ${email}\n• Ciudad: ${address}\n\n`;
-        msg    += `*🛒 Productos:*\n`;
-        cart.forEach((item, i) => {
+        // ─── WhatsApp ─────────────────────────────────────────────────────
+        const biz   = window.BUSINESS_INFO ?? {};
+        const waNum = biz.whatsappNumber ?? '584122891366';
+
+        let msg  = `📋 *PEDIDO — ${biz.businessName ?? 'JJRB'}*\n${'─'.repeat(36)}\n`;
+        msg     += `${greeting}, aquí mi pedido:\n\n`;
+        msg     += `*📦 N° ${orderNum}*\n\n*👤 Datos:*\n`;
+        msg     += `• Nombre: ${name}\n• Teléfono: ${phone}\n• Email: ${email}\n• Ciudad: ${address}\n\n`;
+        msg     += `*🛒 Productos:*\n`;
+        cartSnapshot.forEach((item, i) => {
             msg += `${i+1}. ${item.name} — ${item.versionName} x${item.quantity} = $${(item.price*item.quantity).toFixed(2)}\n`;
         });
         msg += `\n*💰 Pago:*\n`;
         msg += `• Subtotal: $${totals.subtotal.toFixed(2)}\n`;
         if (paymentMethod === 'efectivo') msg += `• Descuento 30%: -$${totals.discount.toFixed(2)}\n`;
         msg += `• Total: $${totals.total.toFixed(2)}\n• Método: ${pmName}\n`;
-        if (pdfGenerated) msg += `\n📎 Se adjunta PDF con el recibo\n`;
+        if (pdfGenerated) msg += `\n📎 Se ha generado un PDF con el recibo completo\n`;
         msg += `\n⌛ ¡Gracias por su preferencia!`;
 
-        // Limpiar
+        // ─── Limpiar ──────────────────────────────────────────────────────
         cart = [];
         saveCart(); updateCart();
         const form = document.getElementById('checkout-form');
@@ -399,7 +492,7 @@ async function processOrder() {
         }
 
         window.switchTab?.('confirmation');
-        showNotification('¡Pedido confirmado!', 'success');
+        showNotification('¡Pedido confirmado! Recibirás el resumen en tu email.', 'success');
 
         setTimeout(() => {
             window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
@@ -411,7 +504,7 @@ async function processOrder() {
     }
 }
 
-// ─── Guardar ────────────────────────────────────────────────────────────
+// ─── Guardar ───────────────────────────────────────────────────────────────
 function saveCart() {
     try {
         localStorage.setItem('jjrb-cart', JSON.stringify(cart));
@@ -429,7 +522,7 @@ function resetVersionSelectors() {
     document.querySelectorAll('.version-select').forEach(s => { s.selectedIndex = 0; });
 }
 
-// ─── Helpers privados ────────────────────────────────────────────────────
+// ─── Helpers privados ──────────────────────────────────────────────────────
 function _setTotals(subtotalId, totalId, discRowId, discAmtId, subtotal, discount) {
     const s = document.getElementById(subtotalId);
     const t = document.getElementById(totalId);
@@ -447,11 +540,12 @@ function _esc(str) {
         .replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-// ─── Exports ──────────────────────────────────────────────────────────────
+// ─── Exports ────────────────────────────────────────────────────────────────
 Object.assign(window, {
     cart, paymentMethod,
     addToCart, updateQuantity, removeFromCart, clearCart,
     updateCart, updateCartDisplay, updateOrderSummary,
     selectPaymentMethod, processOrder, saveCart,
-    resetVersionSelectors, calculateCartTotals, getCartItem
+    resetVersionSelectors, calculateCartTotals, getCartItem,
+    sendOrderByEmail
 });
