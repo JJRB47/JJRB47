@@ -3,44 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jonathan Jose Rangel Betancourt | Enlaces Profesionales</title>
-    
-    <!-- Meta tags SEO mejorados -->
-    <meta name="description" content="Jonathan Jose Rangel Betancourt - Servicios profesionales de software, instalación de Windows y Microsoft Office. Carrito de compras integrado.">
-    <meta name="keywords" content="Windows, Office, software, instalación, licencias, Jonathan Rangel">
+    <title>JJRB | Windows & Office — Jonathan Rangel Betancourt</title>
+
+    <!-- SEO -->
+    <meta name="description" content="Instalación profesional de Windows y Microsoft Office con licencia digital. Activación permanente, soporte técnico incluido. Venezuela.">
+    <meta name="keywords" content="instalación Windows Venezuela, Microsoft Office licencia, activación Windows, soporte técnico PC, JJRB">
     <meta name="author" content="Jonathan Jose Rangel Betancourt">
-    
+    <meta name="robots" content="index, follow">
+
     <!-- Open Graph -->
-    <meta property="og:title" content="Jonathan Jose Rangel Betancourt - Servicios Profesionales">
-    <meta property="og:description" content="Instalación profesional de Windows y Microsoft Office con licencias digitales.">
+    <meta property="og:title" content="JJRB — Windows & Office con licencia digital">
+    <meta property="og:description" content="Instalación profesional con activación permanente y soporte técnico. 30% descuento en efectivo.">
     <meta property="og:type" content="website">
-    
+    <meta property="og:url" content="https://jjrb47.github.io/JJRB47/">
+    <meta property="og:image" content="https://jjrb47.github.io/JJRB47/assets/logo-jrb.png">
+
     <!-- Fuentes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- Estilos -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-    <!-- Contenedor principal -->
     <div class="main-container">
         <div class="decoration-line top"></div>
         <div class="decoration-line bottom"></div>
-
-        <!-- Marca de agua -->
         <div class="watermark" aria-hidden="true">JJRB</div>
 
-        <!-- Sección de perfil -->
+        <!-- Perfil -->
         <div class="profile-section">
-<div class="logo-container">
-    <img src="assets/logo-jrb.jpg" alt="Logo JJRB" class="profile-logo">
-</div>
+            <div class="logo-container">
+                <img src="assets/logo-jrb.png" alt="Logo JJRB" class="profile-logo">
+            </div>
             <h1 class="fade-in">JONATHAN JOSE RANGEL BETANCOURT</h1>
-            
-            <p class="description fade-in">
-                "Bienvenido al perfil de Jonathan Jose Rangel Betancourt (JJRB). Este es tu acceso centralizado. 1. Inicio: Información de contacto y Redes Personales. 2. Carrito de Ventas: Compra directa de servicios de software y PC. 3. Finalizar Compra: Procesamiento de pedidos por WhatsApp. 4. Catálogos Guicar: Enlaces a MEGA/Dropbox y redes de Inversiones Guicar 2025."
-            </p>
+            <p class="tagline fade-in">Servicios Profesionales de Software &amp; Tecnología</p>
+
+            <div class="service-badges fade-in" role="list" aria-label="Servicios">
+                <span role="listitem"><i class="fab fa-windows"></i> Windows</span>
+                <span role="listitem"><i class="fas fa-file-excel"></i> Office</span>
+                <span role="listitem"><i class="fas fa-shield-alt"></i> Licencia Digital</span>
+                <span role="listitem"><i class="fas fa-headset"></i> Soporte Técnico</span>
+            </div>
         </div>
 
         <!-- Grid de enlaces -->
@@ -82,7 +84,7 @@
 
             <a href="https://whatsapp.com/channel/0029Vb6ATQT8vd1X5WSMhi22" class="link-button whatsapp fade-in delay-8" target="_blank" rel="noopener noreferrer">
                 <i class="fab fa-whatsapp" aria-hidden="true"></i>
-                <span>Canal WhatsApp Guicar 2025</span>
+                <span>Canal WhatsApp Guicar</span>
             </a>
 
             <a href="https://www.paypal.me/rangeljo" class="link-button paypal fade-in delay-9" target="_blank" rel="noopener noreferrer">
@@ -90,118 +92,121 @@
                 <span>PayPal</span>
             </a>
 
-            <button id="cart-button" class="link-button cart fade-in delay-10" aria-label="Abrir carrito de compras">
-                <i class="fas fa-shopping-cart" aria-hidden="true"></i>
-                <span>Carrito de Ventas <span id="cart-count" style="display: none;">(0)</span></span>
+            <button id="cart-button" class="link-button cart fade-in delay-10" aria-label="Abrir tienda de servicios">
+                <i class="fas fa-store" aria-hidden="true"></i>
+                <span>Tienda <span id="cart-count" class="cart-badge" style="display:none;">0</span></span>
             </button>
         </nav>
 
-        <!-- Footer -->
         <footer class="footer fade-in">
             <p>&copy; 2026 Jonathan Jose Rangel Betancourt (JJRB). Todos los derechos reservados.</p>
         </footer>
     </div>
 
-    <!-- Modal del Carrito -->
-    <div id="cart-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="modal-title">
+    <!-- ═══════════════════════════════════════
+         MODAL DE LA TIENDA
+    ════════════════════════════════════════ -->
+    <div id="cart-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="modal-title" aria-modal="true">
         <div class="modal-content">
-            <span class="close-modal" aria-label="Cerrar modal">&times;</span>
-            <h2 class="modal-title" id="modal-title">Carrito de Compras</h2>
-            
+            <button class="close-modal" aria-label="Cerrar tienda">&times;</button>
+            <h2 class="modal-title" id="modal-title">
+                <i class="fas fa-store" aria-hidden="true"></i> Tienda JJRB
+            </h2>
+
             <div class="cart-container">
                 <div class="cart-tabs" role="tablist">
-                    <button class="cart-tab active" data-tab="products" role="tab" aria-selected="true" aria-controls="products-section">Productos</button>
-                    <button class="cart-tab" data-tab="cart" role="tab" aria-selected="false" aria-controls="cart-section">Carrito <span id="tab-cart-count">(0)</span></button>
-                    <button class="cart-tab" data-tab="checkout" role="tab" aria-selected="false" aria-controls="checkout-section">Finalizar Compra</button>
+                    <button class="cart-tab active" data-tab="products" role="tab" aria-selected="true" aria-controls="products-section">
+                        <i class="fas fa-th-large"></i> Servicios
+                    </button>
+                    <button class="cart-tab" data-tab="cart" role="tab" aria-selected="false" aria-controls="cart-section">
+                        <i class="fas fa-shopping-cart"></i> Carrito <span id="tab-cart-count">(0)</span>
+                    </button>
+                    <button class="cart-tab" data-tab="checkout" role="tab" aria-selected="false" aria-controls="checkout-section">
+                        <i class="fas fa-credit-card"></i> Finalizar Compra
+                    </button>
                 </div>
-                
-                <!-- Sección de Productos -->
+
+                <!-- Productos -->
                 <div id="products-section" class="cart-section active" role="tabpanel">
-                    <div class="products-grid" id="products-grid">
-                        <!-- Los productos se cargarán dinámicamente con JavaScript -->
-                    </div>
+                    <div class="products-grid" id="products-grid"></div>
                 </div>
-                
-                <!-- Sección del Carrito -->
+
+                <!-- Carrito -->
                 <div id="cart-section" class="cart-section" role="tabpanel">
-                    <div class="cart-items" id="cart-items">
-                        <!-- Los elementos del carrito se cargarán dinámicamente con JavaScript -->
-                    </div>
-                    
+                    <div class="cart-items" id="cart-items"></div>
                     <div class="cart-summary">
                         <div class="summary-row">
                             <span>Subtotal:</span>
                             <span id="subtotal">$0.00</span>
                         </div>
                         <div class="summary-row discount-row hidden" id="discount-row">
-                            <span>Descuento 30% (Efectivo):</span>
+                            <span><i class="fas fa-tag"></i> Descuento 30% (Efectivo):</span>
                             <span id="discount-amount">-$0.00</span>
                         </div>
-                        <div class="summary-row">
+                        <div class="summary-row total-row">
                             <span class="summary-total">Total:</span>
                             <span class="summary-total" id="total">$0.00</span>
                         </div>
                         <div class="discount-notice">
-                            <i class="fas fa-tag" aria-hidden="true"></i>
-                            <strong>¡Oferta especial!</strong> Pago en efectivo tiene 30% de descuento
+                            <i class="fas fa-bolt" aria-hidden="true"></i>
+                            <strong>¡Oferta especial!</strong> Pago en efectivo tiene <strong>30% de descuento</strong>
                         </div>
-                        <button id="proceed-checkout" class="checkout-btn" disabled>Proceder al Pago</button>
+                        <button id="proceed-checkout" class="checkout-btn" disabled aria-disabled="true">
+                            <i class="fas fa-lock"></i> Proceder al Pago
+                        </button>
                     </div>
                 </div>
-                
-                <!-- Sección de Checkout -->
+
+                <!-- Checkout -->
                 <div id="checkout-section" class="cart-section" role="tabpanel">
                     <form id="checkout-form" novalidate>
                         <div class="checkout-form">
                             <div class="form-group">
                                 <label class="form-label" for="customer-name">Nombre Completo *</label>
-                                <input type="text" id="customer-name" class="form-input" required aria-required="true" aria-describedby="name-error">
+                                <input type="text" id="customer-name" class="form-input" required aria-required="true" aria-describedby="name-error" autocomplete="name" placeholder="Tu nombre completo">
                                 <span class="validation-message" id="name-error" role="alert"></span>
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="customer-email">Email *</label>
-                                <input type="email" id="customer-email" class="form-input" required aria-required="true" aria-describedby="email-error">
+                                <input type="email" id="customer-email" class="form-input" required aria-required="true" aria-describedby="email-error" autocomplete="email" placeholder="correo@ejemplo.com">
                                 <span class="validation-message" id="email-error" role="alert"></span>
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="customer-phone">Teléfono *</label>
-                                <input type="tel" id="customer-phone" class="form-input" required aria-required="true" aria-describedby="phone-error">
+                                <input type="tel" id="customer-phone" class="form-input" required aria-required="true" aria-describedby="phone-error" autocomplete="tel" placeholder="+58 412 000 0000">
                                 <span class="validation-message" id="phone-error" role="alert"></span>
                             </div>
                             <div class="form-group full-width">
-                                <label class="form-label" for="customer-address">Dirección *</label>
-                                <input type="text" id="customer-address" class="form-input" required aria-required="true" aria-describedby="address-error">
+                                <label class="form-label" for="customer-address">Ciudad / Dirección *</label>
+                                <input type="text" id="customer-address" class="form-input" required aria-required="true" aria-describedby="address-error" placeholder="Ciudad, Estado">
                                 <span class="validation-message" id="address-error" role="alert"></span>
                             </div>
-                            
-                            <!-- Método de Pago -->
+
                             <div class="form-group full-width">
                                 <label class="form-label">Método de Pago *</label>
                                 <div class="payment-methods" role="radiogroup" aria-label="Selecciona método de pago">
                                     <div class="payment-method selected" data-method="transferencia" role="radio" aria-checked="true" tabindex="0">
                                         <i class="fas fa-university payment-icon" aria-hidden="true"></i>
                                         <div class="payment-name">Transferencia</div>
-                                        <div class="payment-description">Transferencia bancaria</div>
+                                        <div class="payment-description">Banco Venezuela</div>
                                     </div>
                                     <div class="payment-method" data-method="paypal" role="radio" aria-checked="false" tabindex="0">
                                         <i class="fab fa-paypal payment-icon" aria-hidden="true"></i>
                                         <div class="payment-name">PayPal</div>
-                                        <div class="payment-description">Pago seguro con PayPal</div>
+                                        <div class="payment-description">Pago internacional</div>
                                     </div>
                                     <div class="payment-method" data-method="efectivo" role="radio" aria-checked="false" tabindex="0">
-                                        <i class="fas fa-money-bill payment-icon" aria-hidden="true"></i>
+                                        <i class="fas fa-money-bill-wave payment-icon" aria-hidden="true"></i>
                                         <div class="payment-name">Efectivo</div>
-                                        <div class="payment-description">30% de descuento</div>
+                                        <div class="payment-description efectivo-badge">30% OFF</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="order-summary">
-                            <h3>Resumen del Pedido</h3>
-                            <div class="order-items" id="order-items">
-                                <!-- Los elementos del pedido se cargarán dinámicamente con JavaScript -->
-                            </div>
+                            <h3><i class="fas fa-receipt"></i> Resumen del Pedido</h3>
+                            <div class="order-items" id="order-items"></div>
                             <div class="summary-row">
                                 <span>Subtotal:</span>
                                 <span id="order-subtotal">$0.00</span>
@@ -210,33 +215,36 @@
                                 <span>Descuento 30%:</span>
                                 <span id="order-discount">-$0.00</span>
                             </div>
-                            <div class="summary-row">
-                                <span>Total:</span>
-                                <span id="order-total">$0.00</span>
+                            <div class="summary-row total-row">
+                                <span class="summary-total">Total:</span>
+                                <span class="summary-total" id="order-total">$0.00</span>
                             </div>
                         </div>
-                        
-                        <button type="submit" class="checkout-btn">Confirmar Pedido y Enviar por WhatsApp</button>
+
+                        <button type="submit" class="checkout-btn whatsapp-btn">
+                            <i class="fab fa-whatsapp"></i> Confirmar Pedido y Enviar por WhatsApp
+                        </button>
                     </form>
                 </div>
-                
-                <!-- Sección de Confirmación -->
+
+                <!-- Confirmación -->
                 <div id="confirmation-section" class="cart-section" role="tabpanel">
                     <div class="confirmation-message">
                         <div class="confirmation-icon">
                             <i class="fas fa-check-circle" aria-hidden="true"></i>
                         </div>
                         <h3>¡Pedido Confirmado!</h3>
-                        <p>Tu pedido ha sido enviado a WhatsApp Business. Te contactaremos pronto para coordinar el pago y entrega.</p>
+                        <p>Tu pedido ha sido enviado a WhatsApp Business. Te contactaremos pronto para coordinar el pago y la instalación.</p>
                         <p>Número de pedido: <strong id="order-number">JJRB-0001</strong></p>
-                        <button id="continue-shopping" class="checkout-btn">Seguir Comprando</button>
+                        <button id="continue-shopping" class="checkout-btn">
+                            <i class="fas fa-arrow-left"></i> Seguir Comprando
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="assets/js/products.js"></script>
     <script src="assets/js/pdf-generator.js"></script>
