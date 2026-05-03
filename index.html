@@ -36,75 +36,10 @@
             </div>
 
             <h1 class="fade-in">JONATHAN JOSE RANGEL BETANCOURT</h1>
-            <p class="tagline fade-in">Soluciones Integrales · Software · Tecnología · Papelería</p>
-
-            <p class="hero-description fade-in delay-1">
-                Tu aliado tecnológico y comercial de confianza. Desde la instalación de tu sistema operativo
-                hasta los útiles que necesitas cada día — todo en un solo lugar, con atención personalizada
-                y garantía en cada servicio.
-            </p>
-
-            <!-- Categorías de servicio -->
-            <div class="service-categories fade-in delay-2" role="list" aria-label="Áreas de servicio">
-
-                <div class="svc-cat" role="listitem">
-                    <div class="svc-icon">
-                        <i class="fas fa-laptop-code" aria-hidden="true"></i>
-                    </div>
-                    <div class="svc-info">
-                        <strong>Software &amp; Sistemas</strong>
-                        <span>Windows · Office · Licencias digitales · Activación permanente</span>
-                    </div>
-                </div>
-
-                <div class="svc-cat" role="listitem">
-                    <div class="svc-icon svc-phone">
-                        <i class="fas fa-mobile-alt" aria-hidden="true"></i>
-                    </div>
-                    <div class="svc-info">
-                        <strong>Telefonía &amp; Dispositivos</strong>
-                        <span>Soporte técnico · Configuración · Mantenimiento de equipos</span>
-                    </div>
-                </div>
-
-                <div class="svc-cat" role="listitem">
-                    <div class="svc-icon svc-store">
-                        <i class="fas fa-store-alt" aria-hidden="true"></i>
-                    </div>
-                    <div class="svc-info">
-                        <strong>Artículos Escolares &amp; Oficina</strong>
-                        <span>Papelería · Útiles · Insumos de oficina · Catálogo Guicar 2025</span>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Indicadores de confianza -->
-            <div class="trust-strip fade-in delay-3" aria-label="Indicadores de calidad">
-                <div class="trust-item">
-                    <strong>100%</strong>
-                    <span>Activación garantizada</span>
-                </div>
-                <div class="trust-sep" aria-hidden="true"></div>
-                <div class="trust-item">
-                    <strong>15 días</strong>
-                    <span>Garantía técnica</span>
-                </div>
-                <div class="trust-sep" aria-hidden="true"></div>
-                <div class="trust-item">
-                    <strong>30%</strong>
-                    <span>Dcto. en efectivo</span>
-                </div>
-                <div class="trust-sep" aria-hidden="true"></div>
-                <div class="trust-item">
-                    <strong>Inmediato</strong>
-                    <span>Respuesta WhatsApp</span>
-                </div>
-            </div>
-
+            <!-- Secciones eliminadas: tagline, hero-description, service-categories, trust-strip -->
         </div>
 
-        <!-- Grid de enlaces -->
+        <!-- Grid de enlaces actualizado -->
         <nav class="links-grid" aria-label="Enlaces principales">
             <a href="https://mega.nz/folder/nbRVVSYL#te86CqXubHIGiBixgssWYw" class="link-button fade-in delay-1" target="_blank" rel="noopener noreferrer">
                 <i class="fas fa-folder-open" aria-hidden="true"></i>
@@ -151,17 +86,31 @@
                 <span>PayPal</span>
             </a>
 
-            <!-- Nuevos botones para catálogos de Foami y Cartulinas -->
-            <a href="https://jonathan4747rangel-stack.github.io/CATALAGO/" class="link-button fade-in delay-10" target="_blank" rel="noopener noreferrer">
+            <!-- Botón Foami (URL corregida) -->
+            <a href="https://jonathan4747rangel-stack.github.io/Foami/" class="link-button fade-in delay-10" target="_blank" rel="noopener noreferrer">
                 <i class="fas fa-palette" aria-hidden="true"></i>
                 <span>Catálogo Foami</span>
             </a>
 
+            <!-- Botón Cartulinas -->
             <a href="https://rangeljose4747-max.github.io/Cartulinas/" class="link-button fade-in delay-11" target="_blank" rel="noopener noreferrer">
                 <i class="fas fa-scissors" aria-hidden="true"></i>
                 <span>Catálogo Cartulinas</span>
             </a>
 
+            <!-- Botón Pinturas -->
+            <a href="https://jonajjrb-droid.github.io/Pinturas/" class="link-button fade-in delay-13" target="_blank" rel="noopener noreferrer">
+                <i class="fas fa-paint-brush" aria-hidden="true"></i>
+                <span>Catálogo Pinturas</span>
+            </a>
+
+            <!-- Botón Anime / Poliestireno (actualizado con URL real) -->
+            <a href="https://jonyrangel-netizen.github.io/Poliestireno/" class="link-button fade-in delay-14" target="_blank" rel="noopener noreferrer">
+                <i class="fas fa-dragon" aria-hidden="true"></i>
+                <span>Anime (Poliestireno)</span>
+            </a>
+
+            <!-- Botón de la tienda -->
             <button id="cart-button" class="link-button cart fade-in delay-12" aria-label="Abrir tienda de servicios">
                 <i class="fas fa-store" aria-hidden="true"></i>
                 <span>Tienda <span id="cart-count" class="cart-badge" style="display:none;">0</span></span>
@@ -174,9 +123,7 @@
         </footer>
     </div>
 
-    <!-- ═══════════════════════════════════════
-         MODAL DE LA TIENDA
-    ════════════════════════════════════════ -->
+    <!-- MODAL DE LA TIENDA (sin cambios) -->
     <div id="cart-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="modal-title" aria-modal="true">
         <div class="modal-content">
             <button class="close-modal" aria-label="Cerrar tienda">&times;</button>
@@ -316,11 +263,9 @@
         </div>
     </div>
 
-    <!-- jsPDF -->
+    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- EmailJS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <!-- Configuración de EmailJS — edita este archivo con tus claves -->
     <script src="assets/js/emailjs-config.js"></script>
     <script src="assets/js/products.js"></script>
     <script src="assets/js/pdf-generator.js"></script>
