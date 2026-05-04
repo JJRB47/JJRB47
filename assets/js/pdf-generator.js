@@ -1,11 +1,14 @@
-// pdf-generator.js — JJRB Tienda v3.3
-// Área central transparente para que se vea el logo de fondo
+// =======================================================================
+// pdf-generator.js — JJRB Tienda v4.0 (Transparencia + Una hoja)
+// - Marca de agua grande y visible (55% ancho, opacidad 0.4)
+// - Fondos semi-transparentes (opacidad 0.25) para que se vea el logo
+// - Compactación forzada en una sola página
 // =======================================================================
 
 const PDF_CONFIG = Object.freeze({
-    margin:       10,
+    margin:       10,                // reducido para más espacio
     fontSize:     8,
-    headerHeight: 32,
+    headerHeight: 32,                // más compacto
     primaryColor: [26, 54, 93],
     accentColor:  [212, 175, 55],
     watermark:    'JJRB',
@@ -15,8 +18,8 @@ const PDF_CONFIG = Object.freeze({
 
 const pdfLogger = {
     info:  (msg)      => console.info (`[PDF] ${new Date().toLocaleString('es-VE')}: ${msg}`),
-    warn:  (msg, err) => console.warn (`[PDF] ${msg}`, err ?? ''),
-    error: (msg, err) => console.error(`[PDF] ${msg}`, err ?? '')
+    warn:  (msg, err) => console.warn (`[PDF] ${new Date().toLocaleString('es-VE')}: ${msg}`, err ?? ''),
+    error: (msg, err) => console.error(`[PDF] ${new Date().toLocaleString('es-VE')}: ${msg}`, err ?? '')
 };
 
 function toTitleCase(str) {
@@ -25,28 +28,33 @@ function toTitleCase(str) {
 }
 
 function showPDFNotification(message, type = 'success') {
-    if (typeof window !== 'undefined' && typeof window.showNotification === 'function') {
+    pdfLogger.info(`${type.toUpperCase()}: ${message}`);
+    if (typeof window.showNotification === 'function') {
         window.showNotification(message, type);
     }
 }
 
 function getJSPDF() {
-    const JPDF = window?.jspdf?.jsPDF ?? window?.jsPDF ?? (typeof jsPDF !== 'undefined' ? jsPDF : null);
-    if (!JPDF) throw new Error('jsPDF no disponible');
+    const JPDF = window.jspdf?.jsPDF ?? window.jsPDF ?? (typeof jsPDF !== 'undefined' ? jsPDF : null);
+    if (!JPDF) {
+        const msg = 'Biblioteca jsPDF no disponible.';
+        showPDFNotification(msg, 'error');
+        throw new Error(msg);
+    }
     return JPDF;
 }
 
 function loadImage(url) {
     return new Promise((resolve, reject) => {
-        const img = new window.Image();
+        const img = new Image();
         img.crossOrigin = 'Anonymous';
-        img.onload = () => resolve(img);
-        img.onerror = reject;
+        img.onload  = () => resolve(img);
+        img.onerror = (e) => reject(e);
         img.src = url;
     });
 }
 
-async function addLogo(doc, pageWidth) {
+async function addLogo(doc) {
     try {
         const img = await loadImage(PDF_CONFIG.logoUrl);
         const maxW = 22;
@@ -54,26 +62,29 @@ async function addLogo(doc, pageWidth) {
         const logoH = img.height * (maxW / img.width);
         doc.addImage(img, 'PNG', PDF_CONFIG.margin, PDF_CONFIG.margin + 2, logoW, logoH);
         return logoW + PDF_CONFIG.margin + 5;
-    } catch { return 0; }
+    } catch {
+        pdfLogger.warn('Logo no cargado, se omite.');
+        return 0;
+    }
 }
 
-// MARCA DE AGUA MUY VISIBLE (opacidad 0.45)
+// MARCA DE AGUA GRANDE Y VISIBLE (opacidad 0.4)
 async function addImageWatermark(doc, pageWidth, pageHeight) {
     try {
         const img = await loadImage(PDF_CONFIG.watermarkUrl);
-        const ww = pageWidth * 0.55;
+        const ww = pageWidth * 0.55;          // 55% del ancho de la página
         const wh = img.height * (ww / img.width);
         const x = (pageWidth - ww) / 2;
         const y = (pageHeight - wh) / 2;
-        if (doc.setGState) doc.setGState({ opacity: 0.45 });
+        if (doc.setGState) doc.setGState({ opacity: 0.4 });
         doc.addImage(img, 'PNG', x, y, ww, wh);
         if (doc.setGState) doc.setGState({ opacity: 1 });
-    } catch (err) {
-        pdfLogger.warn('Marca de agua imagen fallida, usando texto grande', err);
-        doc.setFontSize(72);
+    } catch {
+        // Fallback texto grande
+        doc.setFontSize(80);
         doc.setTextColor(180, 180, 180);
         doc.setFont('helvetica', 'bold');
-        if (doc.setGState) doc.setGState({ opacity: 0.50 });
+        if (doc.setGState) doc.setGState({ opacity: 0.45 });
         const text = PDF_CONFIG.watermark;
         const tW = doc.getTextWidth(text);
         doc.text(text, (pageWidth - tW) / 2, pageHeight / 2, { align: 'center' });
@@ -82,15 +93,15 @@ async function addImageWatermark(doc, pageWidth, pageHeight) {
     }
 }
 
+// Encabezado opaco (sin transparencia)
 async function addHeader(doc, pageWidth) {
-    // Encabezado opaco (no queremos transparencia aquí)
     doc.setFillColor(...PDF_CONFIG.primaryColor);
     doc.rect(0, 0, pageWidth, PDF_CONFIG.headerHeight - 5, 'F');
     doc.setDrawColor(...PDF_CONFIG.accentColor);
     doc.setLineWidth(1.2);
     doc.line(0, 0, pageWidth, 0);
 
-    const logoOffset = await addLogo(doc, pageWidth);
+    const logoOffset = await addLogo(doc);
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
@@ -105,6 +116,7 @@ async function addHeader(doc, pageWidth) {
     doc.setTextColor(0, 0, 0);
 }
 
+// Info del pedido dentro del encabezado (ahorra espacio)
 function addOrderInfoInHeader(doc, orderData, pageWidth) {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(7);
@@ -118,31 +130,30 @@ function addOrderInfoInHeader(doc, orderData, pageWidth) {
     doc.setTextColor(0, 0, 0);
 }
 
-// Secciones con fondo MUY transparente (opacidad 0.25) para que se vea el logo
+// Sección: datos del cliente (fondo semi-transparente)
 function addCustomerInfo(doc, y, orderData, pageWidth) {
     const m = PDF_CONFIG.margin;
     doc.setFontSize(8.5); doc.setFont('helvetica', 'bold');
     doc.setTextColor(...PDF_CONFIG.primaryColor);
     doc.text('DATOS DEL CLIENTE', m, y);
     y += 4;
-    // Fondo muy transparente (apenas blanco)
     if (doc.setGState) doc.setGState({ opacity: 0.25 });
     doc.setFillColor(255, 255, 255);
     doc.roundedRect(m, y-2, pageWidth - m*2, 28, 2, 2, 'F');
     if (doc.setGState) doc.setGState({ opacity: 1 });
-    // Borde sutil
     doc.setDrawColor(200, 200, 200);
     doc.roundedRect(m, y-2, pageWidth - m*2, 28, 2, 2, 'S');
     doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
-    doc.setTextColor(34, 34, 34); // Gris oscuro, legible
-    const c = orderData.customer || {};
-    doc.text(`Nombre: ${toTitleCase(c.name)}`, m+5, y+3);
+    doc.setTextColor(34, 34, 34);
+    const c = orderData.customer;
+    doc.text(`Nombre: ${toTitleCase(c.name || 'Cliente')}`, m+5, y+3);
     doc.text(`Email: ${c.email || '—'}`, m+5, y+10);
     doc.text(`Teléfono: ${c.phone || '—'}`, pageWidth/2 + 5, y+10);
     doc.text(`Dirección: ${c.address || '—'}`, m+5, y+17);
     return y + 28;
 }
 
+// Detalle del pedido (tabla con fondos semi-transparentes)
 function addOrderDetailsCompact(doc, y, orderData, pageWidth, pageHeight) {
     const m = PDF_CONFIG.margin;
     doc.setFontSize(8.5); doc.setFont('helvetica', 'bold');
@@ -150,7 +161,7 @@ function addOrderDetailsCompact(doc, y, orderData, pageWidth, pageHeight) {
     doc.text('DETALLE DEL PEDIDO', m, y);
     y += 4;
 
-    // Cabecera de tabla (opaca para resaltar títulos)
+    // Cabecera de tabla (opaca para contraste)
     doc.setFillColor(...PDF_CONFIG.primaryColor);
     doc.roundedRect(m, y, pageWidth - m*2, 7, 1, 1, 'F');
     doc.setFontSize(7); doc.setFont('helvetica', 'bold');
@@ -176,12 +187,10 @@ function addOrderDetailsCompact(doc, y, orderData, pageWidth, pageHeight) {
             doc.setFontSize(6);
         }
 
-        // Fondo de fila MUY transparente (0.25)
         if (doc.setGState) doc.setGState({ opacity: 0.25 });
         doc.setFillColor(i % 2 === 0 ? 255 : 250, i % 2 === 0 ? 255 : 251, i % 2 === 0 ? 255 : 252);
         doc.rect(m, currentY, pageWidth - m*2, rowHeight, 'F');
         if (doc.setGState) doc.setGState({ opacity: 1 });
-        // Borde sutil
         doc.setDrawColor(230, 230, 230);
         doc.rect(m, currentY, pageWidth - m*2, rowHeight, 'S');
 
@@ -189,12 +198,12 @@ function addOrderDetailsCompact(doc, y, orderData, pageWidth, pageHeight) {
         doc.text(lines, m+4, currentY + 4);
         doc.setFont('helvetica', 'bold');
         doc.text(String(item.quantity), m+132, currentY + (rowHeight/2), { align: 'center' });
-        doc.text(`$${Number(item.total).toFixed(2)}`, m+168, currentY + (rowHeight/2), { align: 'right' });
+        doc.text(`$${item.total.toFixed(2)}`, m+168, currentY + (rowHeight/2), { align: 'right' });
 
         doc.setFontSize(6); doc.setFont('helvetica', 'italic');
         doc.setTextColor(80,80,80);
         doc.text(`Versión: ${item.version}`, m+8, currentY + rowHeight - 2);
-        const lowerName = String(item.name).toLowerCase();
+        const lowerName = item.name.toLowerCase();
         if (lowerName.includes('windows 7') || lowerName.includes('windows 8')) {
             doc.setFontSize(5.5); doc.setFont('helvetica', 'bold');
             doc.setTextColor(200, 60, 60);
@@ -208,13 +217,13 @@ function addOrderDetailsCompact(doc, y, orderData, pageWidth, pageHeight) {
     return currentY + 5;
 }
 
+// Resumen de pago (fondo semi-transparente)
 function addPaymentSummaryCompact(doc, y, orderData, pageWidth) {
     const m = PDF_CONFIG.margin;
     doc.setFontSize(8.5); doc.setFont('helvetica', 'bold');
     doc.setTextColor(...PDF_CONFIG.primaryColor);
     doc.text('RESUMEN DE PAGO', m, y);
     y += 4;
-    // Fondo muy transparente
     if (doc.setGState) doc.setGState({ opacity: 0.25 });
     doc.setFillColor(250,250,250);
     doc.roundedRect(m, y, pageWidth - m*2, 38, 2, 2, 'F');
@@ -224,12 +233,12 @@ function addPaymentSummaryCompact(doc, y, orderData, pageWidth) {
     doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
     doc.setTextColor(34, 34, 34);
     doc.text('Subtotal:', m+10, y+8);
-    doc.text(`$${Number(orderData.totals.subtotal).toFixed(2)}`, pageWidth - m - 15, y+8, { align: 'right' });
+    doc.text(`$${orderData.totals.subtotal.toFixed(2)}`, pageWidth - m - 15, y+8, { align: 'right' });
     let lineY = y+15;
     if (orderData.totals.discount > 0) {
         doc.setTextColor(40,167,69);
         doc.text('Descuento (30%):', m+10, y+15);
-        doc.text(`-$${Number(orderData.totals.discount).toFixed(2)}`, pageWidth - m - 15, y+15, { align: 'right' });
+        doc.text(`-$${orderData.totals.discount.toFixed(2)}`, pageWidth - m - 15, y+15, { align: 'right' });
         doc.setTextColor(34, 34, 34);
         lineY = y+22;
     }
@@ -240,10 +249,11 @@ function addPaymentSummaryCompact(doc, y, orderData, pageWidth) {
     doc.setFontSize(9); doc.setTextColor(...PDF_CONFIG.primaryColor);
     doc.text('TOTAL A PAGAR:', m+10, lineY+14);
     doc.setFontSize(11); doc.setTextColor(220,53,69);
-    doc.text(`$${Number(orderData.totals.total).toFixed(2)}`, pageWidth - m - 15, lineY+14, { align: 'right' });
+    doc.text(`$${orderData.totals.total.toFixed(2)}`, pageWidth - m - 15, lineY+14, { align: 'right' });
     return lineY + 22;
 }
 
+// Datos bancarios y notas en dos columnas (fondos semi-transparentes)
 function addBankAndNotesTwoColumns(doc, y, orderData, pageWidth, pageHeight) {
     const m = PDF_CONFIG.margin;
     const colWidth = (pageWidth - m*2 - 6) / 2;
@@ -256,12 +266,11 @@ function addBankAndNotesTwoColumns(doc, y, orderData, pageWidth, pageHeight) {
         lineHeight = 5;
     }
 
-    // Columna izquierda: Datos bancarios
+    // Columna izquierda
     doc.setFontSize(8); doc.setFont('helvetica', 'bold');
     doc.setTextColor(...PDF_CONFIG.primaryColor);
     doc.text('DATOS PARA TRANSFERENCIA', m, y);
     let colY = y + 4;
-    // Fondo transparente
     if (doc.setGState) doc.setGState({ opacity: 0.25 });
     doc.setFillColor(240,248,255);
     doc.roundedRect(m, colY-2, colWidth, 36, 2, 2, 'F');
@@ -281,7 +290,7 @@ function addBankAndNotesTwoColumns(doc, y, orderData, pageWidth, pageHeight) {
         doc.text(row, m+5, colY + 3 + i*lineHeight);
     });
 
-    // Columna derecha: Notas importantes
+    // Columna derecha
     doc.setFontSize(8); doc.setFont('helvetica', 'bold');
     doc.setTextColor(33,37,41);
     doc.text('NOTAS IMPORTANTES', midX, y);
@@ -310,7 +319,7 @@ function addBankAndNotesTwoColumns(doc, y, orderData, pageWidth, pageHeight) {
     // Pie de página (opaco)
     doc.setFontSize(7.5); doc.setFont('helvetica', 'italic');
     doc.setTextColor(...PDF_CONFIG.primaryColor);
-    doc.text(`¡${orderData.greeting}, ${toTitleCase(orderData.customer.name)}!`, pageWidth/2, bottomY + 2, { align: 'center' });
+    doc.text(`¡${orderData.greeting}, ${toTitleCase(orderData.customer.name || 'cliente')}!`, pageWidth/2, bottomY + 2, { align: 'center' });
     bottomY += 5;
     doc.setFontSize(6.5); doc.setTextColor(108,117,125);
     doc.text('Agradecemos su confianza', pageWidth/2, bottomY, { align: 'center' });
@@ -321,7 +330,9 @@ function addBankAndNotesTwoColumns(doc, y, orderData, pageWidth, pageHeight) {
     doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth/2, pageHeight - 6, { align: 'center' });
 }
 
+// Generador principal (una sola página garantizada)
 async function generateOrderPDF(orderData) {
+    pdfLogger.info(`Generando PDF: ${orderData.orderNumber}`);
     const jsPDF = getJSPDF();
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
@@ -337,61 +348,87 @@ async function generateOrderPDF(orderData) {
     y = addPaymentSummaryCompact(doc, y, orderData, pw);
     addBankAndNotesTwoColumns(doc, y, orderData, pw, ph);
 
+    pdfLogger.info('PDF generado correctamente en una hoja con transparencia');
     return doc;
 }
 
 async function downloadOrderPDF(orderData) {
     try {
-        showPDFNotification('Generando PDF con área central transparente...', 'info');
+        showPDFNotification('Generando PDF con marca de agua visible y transparencia...', 'success');
         const doc = await generateOrderPDF(orderData);
-        const fileName = `JRB-Pedido-${orderData.orderNumber}_${new Date().toISOString().slice(0,10)}.pdf`;
+        const fileName = `Pedido-${orderData.orderNumber}_${new Date().toISOString().slice(0,10)}.pdf`;
         doc.save(fileName);
-        showPDFNotification(`✅ PDF listo: el logo se ve detrás de los datos`);
+        showPDFNotification(`PDF "${fileName}" generado - el logo se ve detrás del contenido`);
         return { success: true, fileName };
     } catch (err) {
         pdfLogger.error('Error en downloadOrderPDF:', err);
-        showPDFNotification('Error al generar el PDF', 'error');
+        showPDFNotification('Error al generar el PDF. Intente nuevamente.', 'error');
         return { success: false, error: err.message };
     }
 }
 
 function preparePDFData(cart, customerInfo, orderNumber, paymentMethod, totals) {
-    const now = new Date();
-    const getPayment  = window?.getPaymentMethodName ?? (m => m);
-    const getGreeting = window?.getGreetingByTime ?? (() => 'Hola');
-    return {
-        orderNumber: orderNumber || `ORD-${Date.now().toString().slice(-6)}`,
-        date: now.toLocaleDateString('es-VE', { weekday:'long', year:'numeric', month:'long', day:'numeric' }),
-        time: now.toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit', second:'2-digit' }),
-        customer: {
-            name: (customerInfo?.name ?? '').trim() || 'Cliente',
-            email: (customerInfo?.email ?? '').trim() || '',
-            phone: (customerInfo?.phone ?? '').trim() || '',
-            address: (customerInfo?.address ?? '').trim() || 'No especificada'
-        },
-        items: (cart || []).map((item, i) => ({
-            id: item.id || i+1,
-            name: item.name || `Producto ${i+1}`,
-            version: item.versionName || 'Estándar',
-            quantity: Number(item.quantity) || 1,
-            price: Number(item.price) || 0,
-            total: (Number(item.price)||0) * (Number(item.quantity)||1)
-        })),
-        totals: totals || { subtotal:0, discount:0, total:0 },
-        paymentMethod: getPayment(paymentMethod),
-        greeting: getGreeting()
-    };
+    try {
+        const now = new Date();
+        const getPayment  = window.getPaymentMethodName ?? (m => m);
+        const getGreeting = window.getGreetingByTime    ?? (() => 'Hola');
+
+        return {
+            orderNumber: orderNumber || `ORD-${Date.now().toString().slice(-6)}`,
+            date: now.toLocaleDateString('es-VE', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            }),
+            time: now.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            customer: {
+                name:    customerInfo?.name?.trim()    || 'Cliente',
+                email:   customerInfo?.email?.trim()   || '',
+                phone:   customerInfo?.phone?.trim()   || '',
+                address: customerInfo?.address?.trim() || 'No especificada'
+            },
+            items: (cart || []).map((item, i) => ({
+                id:       item.id || i + 1,
+                name:     item.name         || `Producto ${i + 1}`,
+                version:  item.versionName  || 'Estándar',
+                quantity: parseInt(item.quantity, 10) || 1,
+                price:    parseFloat(item.price)      || 0,
+                total:    (parseFloat(item.price) || 0) * (parseInt(item.quantity, 10) || 1)
+            })),
+            totals: totals || { subtotal: 0, discount: 0, total: 0 },
+            paymentMethod: getPayment(paymentMethod),
+            discountPercentage: paymentMethod === 'efectivo' ? 0.30 : 0,
+            greeting: getGreeting()
+        };
+    } catch (err) {
+        pdfLogger.error('Error en preparePDFData:', err);
+        return {
+            orderNumber: `ERROR-${Date.now().toString().slice(-6)}`,
+            date: new Date().toLocaleDateString(),
+            time: new Date().toLocaleTimeString(),
+            customer: { name: 'Cliente', email: '', phone: '', address: '' },
+            items: [], totals: { subtotal: 0, discount: 0, total: 0 },
+            paymentMethod: 'No especificado', discountPercentage: 0, greeting: 'Hola'
+        };
+    }
 }
 
-if (typeof document !== 'undefined' && !document.getElementById('pdf-anim-styles')) {
-    const style = document.createElement('style');
-    style.id = 'pdf-anim-styles';
-    style.textContent = `@keyframes pdfFadeIn{from{opacity:0}to{opacity:1}}`;
-    document.head.appendChild(style);
-}
+// Inyectar estilos de animación (solo una vez)
+(function injectPDFStyles() {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById('pdf-anim-styles')) return;
+    const s = document.createElement('style');
+    s.id = 'pdf-anim-styles';
+    s.textContent = `
+        @keyframes pdfFadeIn  { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes pdfFadeOut { from { opacity:1; transform:translateY(0); }     to { opacity:0; transform:translateY(-10px); } }
+    `;
+    document.head.appendChild(s);
+})();
 
+// Exports globales
 if (typeof window !== 'undefined') {
-    Object.assign(window, { generateOrderPDF, downloadOrderPDF, preparePDFData, toTitleCase });
+    Object.assign(window, {
+        generateOrderPDF, downloadOrderPDF, preparePDFData, toTitleCase
+    });
 }
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { generateOrderPDF, downloadOrderPDF, preparePDFData, toTitleCase, PDF_CONFIG };
