@@ -1,17 +1,10 @@
-// =======================================================================
-// pdf-generator.js — JJRB Tienda v2.1  |  Entorno: Navegador (GitHub Pages)
-// Estado: ✅ Corregido — Arquitecto de Software Pass
-// Cambios: getPaymentMethodName y getGreetingByTime eliminadas del módulo
-//          (se consumen desde window.* definidas en products.js, evitando
-//          duplicación y conflictos de redefinición), showPDFNotification
-//          delega siempre a window.showNotification, GState verificado
-//          antes de usar, animaciones CSS inyectadas una sola vez.
+// pdf-generator.js — JJRB Tienda v2.2 (Una sola página + marca de agua grande)
 // =======================================================================
 
 const PDF_CONFIG = Object.freeze({
-    margin:       15,
-    fontSize:     9,
-    headerHeight: 50,
+    margin:       10,               // reducido para más espacio
+    fontSize:     8,                // más pequeño pero legible
+    headerHeight: 32,               // más compacto
     primaryColor: [26, 54, 93],
     accentColor:  [212, 175, 55],
     watermark:    'JJRB',
@@ -19,457 +12,325 @@ const PDF_CONFIG = Object.freeze({
     watermarkUrl: 'assets/logo-jrb.png'
 });
 
-// ─── Logger ────────────────────────────────────────────────────────────
 const pdfLogger = {
     info:  (msg)      => console.info (`[PDF] ${new Date().toLocaleString('es-VE')}: ${msg}`),
-    warn:  (msg, err) => console.warn (`[PDF] ${new Date().toLocaleString('es-VE')}: ${msg}`, err ?? ''),
-    error: (msg, err) => console.error(`[PDF] ${new Date().toLocaleString('es-VE')}: ${msg}`, err ?? '')
+    warn:  (msg, err) => console.warn (`[PDF] ${msg}`, err ?? ''),
+    error: (msg, err) => console.error(`[PDF] ${msg}`, err ?? '')
 };
 
-// ─── Helper ────────────────────────────────────────────────────────────
 function toTitleCase(str) {
     if (!str || typeof str !== 'string') return '';
     return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 }
 
-// ─── Notificación — delega siempre a window.showNotification ─────────────
 function showPDFNotification(message, type = 'success') {
-    pdfLogger.info(`${type.toUpperCase()}: ${message}`);
     if (typeof window !== 'undefined' && typeof window.showNotification === 'function') {
         window.showNotification(message, type);
     }
 }
 
-// ─── Obtener jsPDF ────────────────────────────────────────────────────────
 function getJSPDF() {
-    const JPDF =
-        window?.jspdf?.jsPDF ??
-        window?.jsPDF ??
-        (typeof jsPDF !== 'undefined' ? jsPDF : null);
-    if (!JPDF) {
-        const msg = 'Biblioteca jsPDF no disponible.';
-        showPDFNotification(msg, 'error');
-        throw new Error(msg);
-    }
+    const JPDF = window?.jspdf?.jsPDF ?? window?.jsPDF ?? (typeof jsPDF !== 'undefined' ? jsPDF : null);
+    if (!JPDF) throw new Error('jsPDF no disponible');
     return JPDF;
 }
 
-// ─── Cargar imagen ────────────────────────────────────────────────────────
 function loadImage(url) {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
         img.crossOrigin = 'Anonymous';
-        img.onload  = () => resolve(img);
-        img.onerror = (e) => reject(e);
+        img.onload = () => resolve(img);
+        img.onerror = reject;
         img.src = url;
     });
 }
 
-// ─── Logo en encabezado ───────────────────────────────────────────────────
 async function addLogo(doc) {
     try {
         const img = await loadImage(PDF_CONFIG.logoUrl);
-        const maxW = 30;
+        const maxW = 25;
         const logoW = maxW;
         const logoH = img.height * (maxW / img.width);
-        doc.addImage(img, 'PNG', PDF_CONFIG.margin, PDF_CONFIG.margin + 5, logoW, logoH);
-        return logoW + PDF_CONFIG.margin + 10;
-    } catch (err) {
-        pdfLogger.warn('Logo no cargado, se omite.', err);
-        return 0;
-    }
+        doc.addImage(img, 'PNG', PDF_CONFIG.margin, PDF_CONFIG.margin + 2, logoW, logoH);
+        return logoW + PDF_CONFIG.margin + 8;
+    } catch { return 0; }
 }
 
-// ─── Marca de agua ────────────────────────────────────────────────────────
+// MARCA DE AGUA GRANDE Y VISIBLE
 async function addImageWatermark(doc, pageWidth, pageHeight) {
     try {
         const img = await loadImage(PDF_CONFIG.watermarkUrl);
-        const ww  = img.width  * 0.25;
-        const wh  = img.height * 0.25;
-        const x   = (pageWidth  - ww) / 2;
-        const y   = (pageHeight - wh) / 2;
-        if (typeof doc.GState === 'function' || doc.GState) {
-            doc.setGState(new doc.GState({ opacity: 0.07 }));
-        }
+        // Grande: 45% del ancho de la página (antes 25%)
+        const ww = pageWidth * 0.45;
+        const wh = img.height * (ww / img.width);
+        const x = (pageWidth - ww) / 2;
+        const y = (pageHeight - wh) / 2;
+        if (doc.GState) doc.setGState(new doc.GState({ opacity: 0.15 })); // más visible
         doc.addImage(img, 'PNG', x, y, ww, wh);
-        if (typeof doc.GState === 'function' || doc.GState) {
-            doc.setGState(new doc.GState({ opacity: 1.0 }));
-        }
+        if (doc.GState) doc.setGState(new doc.GState({ opacity: 1 }));
     } catch (err) {
-        // Fallback: marca de agua de texto
-        pdfLogger.warn('Marca de agua de imagen fallida, usando texto.', err);
-        doc.setFontSize(42);
-        doc.setTextColor(235, 236, 240);
+        pdfLogger.warn('Marca de agua imagen fallida, usando texto grande', err);
+        doc.setFontSize(72);
+        doc.setTextColor(200, 200, 200);
         doc.setFont('helvetica', 'bold');
+        if (doc.GState) doc.setGState(new doc.GState({ opacity: 0.2 }));
         const text = PDF_CONFIG.watermark;
         const tW = doc.getTextWidth(text);
-        doc.text(text, (pageWidth - tW) / 2, pageHeight / 2, { angle: 45 });
+        doc.text(text, (pageWidth - tW) / 2, pageHeight / 2, { angle: 35 });
+        if (doc.GState) doc.setGState(new doc.GState({ opacity: 1 }));
         doc.setTextColor(0, 0, 0);
     }
 }
 
-// ─── Encabezado ──────────────────────────────────────────────────────────
 async function addHeader(doc, pageWidth) {
     doc.setFillColor(...PDF_CONFIG.primaryColor);
-    doc.rect(0, 0, pageWidth, PDF_CONFIG.headerHeight - 10, 'F');
-
+    doc.rect(0, 0, pageWidth, PDF_CONFIG.headerHeight - 5, 'F');
     doc.setDrawColor(...PDF_CONFIG.accentColor);
-    doc.setLineWidth(2);
+    doc.setLineWidth(1.5);
     doc.line(0, 0, pageWidth, 0);
 
     const logoOffset = await addLogo(doc);
-
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-
+    doc.setFontSize(12);
     const nameX = logoOffset || pageWidth / 2;
     const align = logoOffset ? 'left' : 'center';
-    doc.text('JONATHAN JOSÉ RANGEL BETANCOURT', nameX, 16, { align });
-
-    doc.setFontSize(10);
+    doc.text('JONATHAN JOSÉ RANGEL BETANCOURT', nameX, 14, { align });
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text('Desarrollo de Software & Soluciones Tecnológicas', nameX, 24, { align });
-
+    doc.text('Desarrollo de Software & Soluciones Tecnológicas', nameX, 21, { align });
     doc.setDrawColor(...PDF_CONFIG.accentColor);
-    doc.setLineWidth(0.8);
-    doc.line(40, 32, pageWidth - 40, 32);
-
+    doc.setLineWidth(0.5);
+    doc.line(40, 26, pageWidth - 40, 26);
     doc.setTextColor(0, 0, 0);
 }
 
-// ─── Sección: info del pedido ─────────────────────────────────────────────
+// SECCIONES COMPACTAS (todo en una página)
 function addOrderInfo(doc, y, orderData, pageWidth) {
     const m = PDF_CONFIG.margin;
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
     doc.setTextColor(...PDF_CONFIG.primaryColor);
     doc.text('INFORMACIÓN DEL PEDIDO', m, y);
-    y += 7;
-
+    y += 5;
     doc.setFillColor(250, 250, 250);
-    doc.roundedRect(m, y - 2, pageWidth - m * 2, 22, 2, 2, 'F');
-    doc.setDrawColor(220, 220, 220); doc.setLineWidth(0.2);
-    doc.roundedRect(m, y - 2, pageWidth - m * 2, 22, 2, 2, 'S');
-
-    doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(0, 0, 0);
-    doc.text(`Nº Pedido: ${orderData.orderNumber}`, m + 5, y + 4);
-    doc.text(`Fecha: ${orderData.date}`, pageWidth / 2, y + 4);
-    y += 8;
-    doc.text(`Hora: ${orderData.time}`, m + 5, y + 4);
-    doc.text('Estado: Pendiente', pageWidth / 2, y + 4);
-    return y + 15;
-}
-
-// ─── Sección: datos del cliente ───────────────────────────────────────────
-function addCustomerInfo(doc, y, orderData, pageWidth) {
-    const m = PDF_CONFIG.margin;
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...PDF_CONFIG.primaryColor);
-    doc.text('DATOS DEL CLIENTE', m, y);
-    y += 7;
-
-    doc.setFillColor(253, 253, 253);
-    doc.roundedRect(m, y - 2, pageWidth - m * 2, 40, 2, 2, 'F');
-    doc.setDrawColor(220, 220, 220); doc.setLineWidth(0.2);
-    doc.roundedRect(m, y - 2, pageWidth - m * 2, 40, 2, 2, 'S');
-
-    doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(0, 0, 0);
-    const c = orderData.customer || {};
-    doc.text(`Nombre: ${toTitleCase(c.name || 'Cliente')}`, m + 5, y + 4);
-    y += 8;
-    doc.text(`Email: ${c.email || '—'}`,   m + 5,          y + 4);
-    doc.text(`Teléfono: ${c.phone || '—'}`, pageWidth / 2, y + 4);
-    y += 8;
-    doc.text(`Dirección: ${c.address || '—'}`, m + 5, y + 4);
-    return y + 15;
-}
-
-// ─── Sección: detalle del pedido ──────────────────────────────────────────
-function addOrderDetails(doc, y, orderData, pageWidth, pageHeight) {
-    const m = PDF_CONFIG.margin;
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...PDF_CONFIG.primaryColor);
-    doc.text('DETALLE DEL PEDIDO', m, y);
-    y += 8;
-
-    doc.setFillColor(240, 242, 245);
-    doc.roundedRect(m, y, pageWidth - m * 2, 8, 1, 1, 'F');
-    doc.setFontSize(8); doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...PDF_CONFIG.primaryColor);
-    doc.text('PRODUCTO / SERVICIO', m + 5, y + 5);
-    doc.text('CANT.',   m + 120, y + 5);
-    doc.text('PRECIO',  m + 160, y + 5);
-    y += 10;
-
-    doc.setFont('helvetica', 'normal'); doc.setTextColor(0, 0, 0);
-
-    for (let i = 0; i < orderData.items.length; i++) {
-        const item = orderData.items[i];
-        if (y > pageHeight - 40) {
-            doc.addPage();
-            addImageWatermark(doc, pageWidth, pageHeight);
-            y = PDF_CONFIG.margin + 10;
-        }
-        doc.setFillColor(i % 2 === 0 ? 252 : 248, i % 2 === 0 ? 252 : 249, i % 2 === 0 ? 252 : 250);
-        doc.rect(m, y, pageWidth - m * 2, 10, 'F');
-
-        doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-        doc.text(`${i + 1}. ${item.name}`, m + 5, y + 6);
-        doc.setFont('helvetica', 'bold');
-        doc.text(String(item.quantity), m + 122, y + 6);
-        doc.text(`$${Number(item.total).toFixed(2)}`, m + 162, y + 6);
-
-        doc.setFontSize(7); doc.setFont('helvetica', 'italic');
-        doc.setTextColor(100, 100, 100);
-        doc.text(`Versión: ${item.version}`, m + 5, y + 9.5);
-
-        const lowerName = String(item.name).toLowerCase();
-        if (lowerName.includes('windows 7') || lowerName.includes('windows 8') || lowerName.includes('vista')) {
-            doc.setFontSize(6); doc.setFont('helvetica', 'bold');
-            doc.setTextColor(220, 53, 69);
-            doc.text('⚠ SISTEMA SIN SOPORTE OFICIAL', m + 40, y + 9.5);
-        }
-        doc.setTextColor(0, 0, 0);
-        y += 12;
-    }
-
-    doc.setDrawColor(220, 220, 220); doc.setLineWidth(0.3);
-    doc.line(m, y, pageWidth - m, y);
-    return y + 8;
-}
-
-// ─── Sección: resumen de pago ─────────────────────────────────────────────
-function addPaymentSummary(doc, y, orderData, pageWidth) {
-    const m = PDF_CONFIG.margin;
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...PDF_CONFIG.primaryColor);
-    doc.text('RESUMEN DE PAGO', m, y);
-    y += 8;
-
-    doc.setFillColor(250, 250, 250);
-    doc.roundedRect(m, y, pageWidth - m * 2, 45, 2, 2, 'F');
-    doc.setDrawColor(220, 220, 220); doc.setLineWidth(0.3);
-    doc.roundedRect(m, y, pageWidth - m * 2, 45, 2, 2, 'S');
-
-    doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(0, 0, 0);
-    doc.text('Subtotal:', m + 10, y + 8);
-    doc.text(`$${Number(orderData.totals.subtotal).toFixed(2)}`, pageWidth - m - 30, y + 8);
-    y += 8;
-
-    if (orderData.totals.discount > 0) {
-        doc.setTextColor(40, 167, 69);
-        doc.text('Descuento (30%):', m + 10, y + 8);
-        doc.text(`-$${Number(orderData.totals.discount).toFixed(2)}`, pageWidth - m - 30, y + 8);
-        doc.setTextColor(0, 0, 0);
-        y += 8;
-    }
-
-    doc.setDrawColor(200, 200, 200);
-    doc.line(m + 10, y + 4, pageWidth - m - 10, y + 4);
-    y += 8;
-
-    doc.setFont('helvetica', 'bold'); doc.setTextColor(...PDF_CONFIG.accentColor);
-    doc.text(`Método: ${orderData.paymentMethod}`, m + 10, y + 8);
-    y += 10;
-
-    doc.setFontSize(12); doc.setTextColor(...PDF_CONFIG.primaryColor);
-    doc.text('TOTAL A PAGAR:', m + 10, y + 8);
-    doc.setFontSize(14); doc.setTextColor(220, 53, 69);
-    doc.text(`$${Number(orderData.totals.total).toFixed(2)}`, pageWidth - m - 35, y + 8);
-    doc.setTextColor(0, 0, 0);
+    doc.roundedRect(m, y-2, pageWidth - m*2, 18, 2, 2, 'F');
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(0,0,0);
+    doc.text(`Nº Pedido: ${orderData.orderNumber}`, m+5, y+4);
+    doc.text(`Fecha: ${orderData.date}`, pageWidth/2, y+4);
+    doc.text(`Hora: ${orderData.time}`, m+5, y+11);
+    doc.text('Estado: Pendiente', pageWidth/2, y+11);
     return y + 20;
 }
 
-// ─── Sección: datos bancarios y notas ────────────────────────────────────
+function addCustomerInfo(doc, y, orderData, pageWidth) {
+    const m = PDF_CONFIG.margin;
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...PDF_CONFIG.primaryColor);
+    doc.text('DATOS DEL CLIENTE', m, y);
+    y += 5;
+    doc.setFillColor(253, 253, 253);
+    doc.roundedRect(m, y-2, pageWidth - m*2, 34, 2, 2, 'F');
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(0,0,0);
+    const c = orderData.customer || {};
+    doc.text(`Nombre: ${toTitleCase(c.name)}`, m+5, y+4);
+    doc.text(`Email: ${c.email || '—'}`, m+5, y+11);
+    doc.text(`Teléfono: ${c.phone || '—'}`, pageWidth/2, y+11);
+    doc.text(`Dirección: ${c.address || '—'}`, m+5, y+18);
+    return y + 30;
+}
+
+function addOrderDetails(doc, y, orderData, pageWidth, pageHeight) {
+    const m = PDF_CONFIG.margin;
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...PDF_CONFIG.primaryColor);
+    doc.text('DETALLE DEL PEDIDO', m, y);
+    y += 5;
+
+    // Cabecera de tabla
+    doc.setFillColor(240, 242, 245);
+    doc.roundedRect(m, y, pageWidth - m*2, 7, 1,1,'F');
+    doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...PDF_CONFIG.primaryColor);
+    doc.text('PRODUCTO', m+5, y+4.5);
+    doc.text('CANT.', m+120, y+4.5);
+    doc.text('PRECIO', m+160, y+4.5);
+    y += 8;
+
+    doc.setFont('helvetica', 'normal'); doc.setTextColor(0,0,0);
+    for (let i = 0; i < orderData.items.length; i++) {
+        const item = orderData.items[i];
+        // Nunca crear nueva página (forzar compactación)
+        if (y > pageHeight - 45) {
+            // reducción extrema de fuentes si está muy apretado
+            doc.setFontSize(6);
+        }
+        doc.setFillColor(i % 2 === 0 ? 252 : 248, i % 2 === 0 ? 252 : 249, i % 2 === 0 ? 252 : 250);
+        doc.rect(m, y, pageWidth - m*2, 11, 'F');
+        doc.setFontSize(7);
+        doc.text(`${i+1}. ${item.name}`, m+5, y+4);
+        doc.setFont('helvetica', 'bold');
+        doc.text(String(item.quantity), m+122, y+4);
+        doc.text(`$${Number(item.total).toFixed(2)}`, m+162, y+4);
+        doc.setFontSize(6); doc.setFont('helvetica', 'italic');
+        doc.setTextColor(80,80,80);
+        doc.text(`Versión: ${item.version}`, m+5, y+8);
+        const lowerName = String(item.name).toLowerCase();
+        if (lowerName.includes('windows 7') || lowerName.includes('windows 8')) {
+            doc.setFontSize(5); doc.setFont('helvetica', 'bold');
+            doc.setTextColor(200, 60, 60);
+            doc.text('⚠ Sin soporte oficial', m+45, y+8);
+        }
+        doc.setTextColor(0,0,0);
+        y += 12;
+    }
+    doc.setDrawColor(200,200,200);
+    doc.line(m, y, pageWidth - m, y);
+    return y + 5;
+}
+
+function addPaymentSummary(doc, y, orderData, pageWidth) {
+    const m = PDF_CONFIG.margin;
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...PDF_CONFIG.primaryColor);
+    doc.text('RESUMEN DE PAGO', m, y);
+    y += 5;
+    doc.setFillColor(250,250,250);
+    doc.roundedRect(m, y, pageWidth - m*2, 40, 2,2,'F');
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(0,0,0);
+    doc.text('Subtotal:', m+10, y+7);
+    doc.text(`$${Number(orderData.totals.subtotal).toFixed(2)}`, pageWidth - m - 25, y+7);
+    if (orderData.totals.discount > 0) {
+        doc.setTextColor(40,167,69);
+        doc.text('Descuento (30%):', m+10, y+15);
+        doc.text(`-$${Number(orderData.totals.discount).toFixed(2)}`, pageWidth - m - 25, y+15);
+        doc.setTextColor(0,0,0);
+    }
+    doc.setDrawColor(180,180,180);
+    doc.line(m+10, y+22, pageWidth - m - 10, y+22);
+    doc.setFont('helvetica', 'bold'); doc.setTextColor(...PDF_CONFIG.accentColor);
+    doc.text(`Método: ${orderData.paymentMethod}`, m+10, y+30);
+    doc.setFontSize(10); doc.setTextColor(...PDF_CONFIG.primaryColor);
+    doc.text('TOTAL A PAGAR:', m+10, y+37);
+    doc.setFontSize(12); doc.setTextColor(220,53,69);
+    doc.text(`$${Number(orderData.totals.total).toFixed(2)}`, pageWidth - m - 28, y+37);
+    return y + 50;
+}
+
 function addBankDetailsAndNotes(doc, y, orderData, pageWidth, pageHeight) {
     const m = PDF_CONFIG.margin;
-    if (y > pageHeight - 100) {
-        doc.addPage();
-        addImageWatermark(doc, pageWidth, pageHeight);
-        y = m + 10;
+    // Si no queda espacio, forzar reducción de fuentes en lugar de nueva página
+    if (y > pageHeight - 70) {
+        doc.setFontSize(7);
     }
-
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
     doc.setTextColor(...PDF_CONFIG.primaryColor);
-    doc.text('DATOS PARA TRANSFERENCIA / PAGO MÓVIL', m, y);
-    y += 8;
-
-    doc.setFillColor(240, 248, 255);
-    doc.roundedRect(m, y, pageWidth - m * 2, 40, 3, 3, 'F');
-    doc.setDrawColor(26, 54, 93); doc.setLineWidth(0.5);
-    doc.roundedRect(m, y, pageWidth - m * 2, 40, 3, 3, 'S');
-
-    const bankRows = [
-        ['Banco:',        'Banco de Venezuela'],
-        ['Titular:',      'Jonathan José Rangel Betancourt'],
-        ['Cédula:',       '25.175.926'],
-        ['Teléfono:',     '0412-289-1366'],
-        ['Tipo Cuenta:',  'Corriente']
-    ];
-    doc.setFontSize(9); doc.setTextColor(0, 0, 0);
+    doc.text('DATOS PARA TRANSFERENCIA', m, y);
+    y += 5;
+    doc.setFillColor(240,248,255);
+    doc.roundedRect(m, y, pageWidth - m*2, 38, 2,2,'F');
+    const bankRows = [['Banco:', 'Banco de Venezuela'], ['Titular:', 'Jonathan José Rangel Betancourt'], ['Cédula:', '25.175.926'], ['Teléfono:', '0412-289-1366'], ['Tipo Cuenta:', 'Corriente']];
+    doc.setFontSize(8); doc.setTextColor(0,0,0);
     bankRows.forEach(([label, val], i) => {
-        const ry = y + 8 + i * 7;
-        doc.setFont('helvetica', 'bold');  doc.text(label, m + 8, ry);
-        doc.setFont('helvetica', 'normal'); doc.text(val, m + 38, ry);
+        doc.setFont('helvetica', 'bold'); doc.text(label, m+8, y+6 + i*6);
+        doc.setFont('helvetica', 'normal'); doc.text(val, m+38, y+6 + i*6);
     });
-    y += 50;
+    y += 46;
 
-    doc.setFontSize(10); doc.setFont('helvetica', 'bold');
-    doc.setTextColor(33, 37, 41);
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.setTextColor(33,37,41);
     doc.text('NOTAS IMPORTANTES', m, y);
-    y += 8;
+    y += 5;
+    const notes = ['✓ Envíe comprobante por WhatsApp', '✓ Respuesta 15–30 min tras pago', '✓ Garantía 15 días desde instalación', '✓ Soporte técnico incluido', '✓ Windows 7/8: riesgo del cliente'];
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+    doc.setTextColor(73,80,87);
+    notes.forEach((note, i) => { doc.text(note, m+5, y + i*5); });
+    y += notes.length * 5 + 10;
 
-    const notes = [
-        '✓ Envíe el comprobante de pago por WhatsApp.',
-        '✓ Respuesta en 15–30 minutos tras confirmar el pago.',
-        '✓ Garantía: 15 días continuos desde la instalación.',
-        '✓ Soporte técnico incluido durante la garantía.',
-        '✓ Para Windows 7/8 el cliente asume los riesgos de seguridad.'
-    ];
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-    doc.setTextColor(73, 80, 87);
-    notes.forEach((note, i) => {
-        const ny = y + i * 5;
-        if (ny > pageHeight - 20) {
-            doc.addPage();
-            addImageWatermark(doc, pageWidth, pageHeight);
-            y = m + 10;
-        }
-        doc.text(note, m + 5, ny);
-    });
-    y += 30;
-
-    // Mensaje de cierre
-    doc.setFontSize(9); doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8); doc.setFont('helvetica', 'italic');
     doc.setTextColor(...PDF_CONFIG.primaryColor);
-    doc.text(`¡${orderData.greeting}, ${toTitleCase(orderData.customer.name || 'cliente')}!`,
-        pageWidth / 2, y, { align: 'center' });
+    doc.text(`¡${orderData.greeting}, ${toTitleCase(orderData.customer.name)}!`, pageWidth/2, y, { align: 'center' });
     y += 5;
-    doc.setFontSize(8); doc.setTextColor(108, 117, 125);
-    doc.text('Agradecemos su confianza y preferencia.',
-        pageWidth / 2, y, { align: 'center' });
-    y += 5;
-    doc.text('Desarrollo de Software & Soluciones Tecnológicas',
-        pageWidth / 2, y, { align: 'center' });
+    doc.setFontSize(7); doc.setTextColor(108,117,125);
+    doc.text('Agradecemos su confianza', pageWidth/2, y, { align: 'center' });
+    y += 4;
+    doc.text('Desarrollo de Software & Soluciones Tecnológicas', pageWidth/2, y, { align: 'center' });
 
-    // Pie de página
-    doc.setFontSize(7); doc.setTextColor(150, 150, 150);
-    doc.text(
-        `Documento generado el ${new Date().toLocaleDateString('es-VE')} a las ${new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })}`,
-        pageWidth / 2, pageHeight - 10, { align: 'center' }
-    );
+    doc.setFontSize(6); doc.setTextColor(150,150,150);
+    doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth/2, pageHeight - 8, { align: 'center' });
 }
 
-// ─── Generador principal ──────────────────────────────────────────────────
 async function generateOrderPDF(orderData) {
-    pdfLogger.info(`Generando PDF: ${orderData.orderNumber}`);
-    try {
-        const jsPDF = getJSPDF();
-        const doc   = new jsPDF();
+    const jsPDF = getJSPDF();
+    const doc = new jsPDF();
+    const pw = doc.internal.pageSize.getWidth();
+    const ph = doc.internal.pageSize.getHeight();
 
-        const pw = doc.internal.pageSize.getWidth();
-        const ph = doc.internal.pageSize.getHeight();
+    await addImageWatermark(doc, pw, ph); // marca de agua grande y visible
+    await addHeader(doc, pw);
 
-        await addImageWatermark(doc, pw, ph);
-        await addHeader(doc, pw);
+    let y = PDF_CONFIG.headerHeight + 5;
+    y = addOrderInfo(doc, y, orderData, pw);
+    y = addCustomerInfo(doc, y, orderData, pw);
+    y = addOrderDetails(doc, y, orderData, pw, ph);
+    y = addPaymentSummary(doc, y, orderData, pw);
+    addBankDetailsAndNotes(doc, y, orderData, pw, ph);
 
-        let y = PDF_CONFIG.headerHeight + 5;
-        y = addOrderInfo(doc, y, orderData, pw);
-        y = addCustomerInfo(doc, y, orderData, pw);
-        y = addOrderDetails(doc, y, orderData, pw, ph);
-        y = addPaymentSummary(doc, y, orderData, pw);
-        addBankDetailsAndNotes(doc, y, orderData, pw, ph);
-
-        pdfLogger.info('PDF generado OK');
-        return doc;
-    } catch (error) {
-        pdfLogger.error('Error en generateOrderPDF:', error);
-        throw error;
-    }
+    return doc;
 }
 
-// ─── Descargar PDF ────────────────────────────────────────────────────────
 async function downloadOrderPDF(orderData) {
     try {
-        showPDFNotification('Generando PDF…', 'success');
+        showPDFNotification('Generando PDF profesional (1 hoja)...', 'success');
         const doc = await generateOrderPDF(orderData);
-        const fileName = `Pedido-${orderData.orderNumber}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        const fileName = `Pedido-${orderData.orderNumber}_${new Date().toISOString().slice(0,10)}.pdf`;
         doc.save(fileName);
-        showPDFNotification(`PDF "${fileName}" generado correctamente`);
+        showPDFNotification(`✅ PDF generado en una sola hoja: ${fileName}`);
         return { success: true, fileName };
     } catch (err) {
         pdfLogger.error('Error en downloadOrderPDF:', err);
-        showPDFNotification('Error al generar el PDF. Intente nuevamente.', 'error');
+        showPDFNotification('Error al generar el PDF', 'error');
         return { success: false, error: err.message };
     }
 }
 
-// ─── Preparar datos del PDF ───────────────────────────────────────────────
 function preparePDFData(cart, customerInfo, orderNumber, paymentMethod, totals) {
-    try {
-        const now = new Date();
-        const getPayment  = window?.getPaymentMethodName ?? (m => m);
-        const getGreeting = window?.getGreetingByTime ?? (() => 'Hola');
-
-        return {
-            orderNumber: orderNumber || `ORD-${Date.now().toString().slice(-6)}`,
-            date: now.toLocaleDateString('es-VE', {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-            }),
-            time: now.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-            customer: {
-                name:    (customerInfo?.name ?? '').trim()    || 'Cliente',
-                email:   (customerInfo?.email ?? '').trim()   || '',
-                phone:   (customerInfo?.phone ?? '').trim()   || '',
-                address: (customerInfo?.address ?? '').trim() || 'No especificada'
-            },
-            items: Array.isArray(cart) ? cart.map((item, i) => ({
-                id:       item.id || i + 1,
-                name:     item.name         || `Producto ${i + 1}`,
-                version:  item.versionName  || 'Estándar',
-                quantity: Number.parseInt(item.quantity, 10) || 1,
-                price:    Number.parseFloat(item.price)      || 0,
-                total:    (Number.parseFloat(item.price) || 0) * (Number.parseInt(item.quantity, 10) || 1)
-            })) : [],
-            totals: totals || { subtotal: 0, discount: 0, total: 0 },
-            paymentMethod:      getPayment(paymentMethod),
-            discountPercentage: paymentMethod === 'efectivo' ? 0.30 : 0,
-            greeting:           getGreeting()
-        };
-    } catch (err) {
-        pdfLogger.error('Error en preparePDFData:', err);
-        return {
-            orderNumber: `ERROR-${Date.now().toString().slice(-6)}`,
-            date: new Date().toLocaleDateString(),
-            time: new Date().toLocaleTimeString(),
-            customer: { name: 'Cliente', email: '', phone: '', address: '' },
-            items: [], totals: { subtotal: 0, discount: 0, total: 0 },
-            paymentMethod: 'No especificado', discountPercentage: 0, greeting: 'Hola'
-        };
-    }
+    const now = new Date();
+    const getPayment  = window?.getPaymentMethodName ?? (m => m);
+    const getGreeting = window?.getGreetingByTime ?? (() => 'Hola');
+    return {
+        orderNumber: orderNumber || `ORD-${Date.now().toString().slice(-6)}`,
+        date: now.toLocaleDateString('es-VE', { weekday:'long', year:'numeric', month:'long', day:'numeric' }),
+        time: now.toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit', second:'2-digit' }),
+        customer: {
+            name: (customerInfo?.name ?? '').trim() || 'Cliente',
+            email: (customerInfo?.email ?? '').trim() || '',
+            phone: (customerInfo?.phone ?? '').trim() || '',
+            address: (customerInfo?.address ?? '').trim() || 'No especificada'
+        },
+        items: (cart || []).map((item, i) => ({
+            id: item.id || i+1,
+            name: item.name || `Producto ${i+1}`,
+            version: item.versionName || 'Estándar',
+            quantity: Number(item.quantity) || 1,
+            price: Number(item.price) || 0,
+            total: (Number(item.price)||0) * (Number(item.quantity)||1)
+        })),
+        totals: totals || { subtotal:0, discount:0, total:0 },
+        paymentMethod: getPayment(paymentMethod),
+        greeting: getGreeting()
+    };
 }
 
-// ─── Inyectar estilos de animación una sola vez ───────────────────────────
-(function injectPDFStyles() {
-    if (typeof document !== 'undefined' && !document.getElementById('pdf-anim-styles')) {
-        const s = document.createElement('style');
-        s.id = 'pdf-anim-styles';
-        s.textContent = `
-            @keyframes pdfFadeIn  { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
-            @keyframes pdfFadeOut { from { opacity:1; transform:translateY(0); }     to { opacity:0; transform:translateY(-10px); } }
-        `;
-        document.head.appendChild(s);
-    }
-})();
+// Inyectar estilos (solo una vez)
+if (typeof document !== 'undefined' && !document.getElementById('pdf-anim-styles')) {
+    const style = document.createElement('style');
+    style.id = 'pdf-anim-styles';
+    style.textContent = `@keyframes pdfFadeIn{from{opacity:0}to{opacity:1}}`;
+    document.head.appendChild(style);
+}
 
-// ─── Exports globales ─────────────────────────────────────────────────────
 if (typeof window !== 'undefined') {
-    Object.assign(window, {
-        generateOrderPDF,
-        downloadOrderPDF,
-        preparePDFData,
-        toTitleCase
-    });
+    Object.assign(window, { generateOrderPDF, downloadOrderPDF, preparePDFData, toTitleCase });
 }
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { generateOrderPDF, downloadOrderPDF, preparePDFData, toTitleCase, PDF_CONFIG };
