@@ -1,6 +1,6 @@
 # 🚀 Jonathan Jose Rangel Betancourt - Página Web Profesional
 
-Bienvenido al repositorio de mi página web profesional, un sitio moderno y responsivo diseñado para ofrecer y gestionar servicios de software especializados en licencias de Windows y Microsoft Office. El sitio integra un sistema de carrito de compras y automatización de pedidos vía WhatsApp, pensado para facilitar la adquisición de productos y optimizar la experiencia del cliente.
+Bienvenido al repositorio de mi página web profesional, un sitio moderno y responsivo diseñado para ofrecer y gestionar servicios de software especializados.
 
 ## 🌟 Características Principales
 
@@ -8,22 +8,7 @@ Bienvenido al repositorio de mi página web profesional, un sitio moderno y resp
 - **Responsive Design:** Totalmente adaptable a dispositivos móviles, tabletas y escritorio.
 - **Carrito de Compras:** Sistema de e-commerce simple, intuitivo y eficiente, con persistencia de datos usando LocalStorage.
 - **Integración con WhatsApp:** Automatización del proceso de pedidos para mayor rapidez y comunicación directa.
-- **Catálogo Especializado:** Venta exclusiva de licencias genuinas de Windows y Microsoft Office.
-  
-## 📦 Productos Disponibles
-
-### Windows
-- Windows 7 Professional - $10.00
-- Windows 8/8.1 Pro - $10.00
-- Windows 10 Pro - $15.00
-- Windows 11 Pro - $15.00
-
-### Microsoft Office
-- Office 2010 - $10.00
-- Office 2013 - $10.00
-- Office 2016 - $10.00
-- Office 2019 - $15.00
-- Office 2021 - $15.00
+- **Catálogo Especializado:** Venta de software genuino.
 
 ## 🛠️ Tecnologías Utilizadas
 
@@ -53,7 +38,7 @@ Puedes ver la página en funcionamiento desplegada en GitHub Pages o en tu servi
 
 ## 📜 Licencia
 
-Este proyecto es solo para fines demostrativos. No fomenta la distribución ilegal de software. Para usos comerciales, consulta las licencias correspondientes de Microsoft.
+Este proyecto es solo para fines demostrativos. Para usos comerciales, consulta las licencias correspondientes del software utilizado.
 
 ---
 
