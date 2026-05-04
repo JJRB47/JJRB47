@@ -1,5 +1,5 @@
-// pdf-generator.js — JJRB Tienda v3.1
-// Compactación dinámica, una sola hoja garantizada, marca de agua grande y visible
+// pdf-generator.js — JJRB Tienda v3.3
+// Área central transparente para que se vea el logo de fondo
 // =======================================================================
 
 const PDF_CONFIG = Object.freeze({
@@ -57,24 +57,23 @@ async function addLogo(doc, pageWidth) {
     } catch { return 0; }
 }
 
-// MARCA DE AGUA GRANDE Y VISIBLE (sin ángulo problemático)
+// MARCA DE AGUA MUY VISIBLE (opacidad 0.45)
 async function addImageWatermark(doc, pageWidth, pageHeight) {
     try {
         const img = await loadImage(PDF_CONFIG.watermarkUrl);
-        const ww = pageWidth * 0.55; // 55% del ancho, muy visible
+        const ww = pageWidth * 0.55;
         const wh = img.height * (ww / img.width);
         const x = (pageWidth - ww) / 2;
         const y = (pageHeight - wh) / 2;
-        // Uso seguro de opacidad
-        if (doc.setGState) doc.setGState({ opacity: 0.12 });
+        if (doc.setGState) doc.setGState({ opacity: 0.45 });
         doc.addImage(img, 'PNG', x, y, ww, wh);
         if (doc.setGState) doc.setGState({ opacity: 1 });
     } catch (err) {
         pdfLogger.warn('Marca de agua imagen fallida, usando texto grande', err);
         doc.setFontSize(72);
-        doc.setTextColor(200, 200, 200);
+        doc.setTextColor(180, 180, 180);
         doc.setFont('helvetica', 'bold');
-        if (doc.setGState) doc.setGState({ opacity: 0.2 });
+        if (doc.setGState) doc.setGState({ opacity: 0.50 });
         const text = PDF_CONFIG.watermark;
         const tW = doc.getTextWidth(text);
         doc.text(text, (pageWidth - tW) / 2, pageHeight / 2, { align: 'center' });
@@ -84,6 +83,7 @@ async function addImageWatermark(doc, pageWidth, pageHeight) {
 }
 
 async function addHeader(doc, pageWidth) {
+    // Encabezado opaco (no queremos transparencia aquí)
     doc.setFillColor(...PDF_CONFIG.primaryColor);
     doc.rect(0, 0, pageWidth, PDF_CONFIG.headerHeight - 5, 'F');
     doc.setDrawColor(...PDF_CONFIG.accentColor);
@@ -105,7 +105,6 @@ async function addHeader(doc, pageWidth) {
     doc.setTextColor(0, 0, 0);
 }
 
-// Información del pedido dentro del encabezado (ahorra espacio)
 function addOrderInfoInHeader(doc, orderData, pageWidth) {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(7);
@@ -119,15 +118,23 @@ function addOrderInfoInHeader(doc, orderData, pageWidth) {
     doc.setTextColor(0, 0, 0);
 }
 
+// Secciones con fondo MUY transparente (opacidad 0.25) para que se vea el logo
 function addCustomerInfo(doc, y, orderData, pageWidth) {
     const m = PDF_CONFIG.margin;
     doc.setFontSize(8.5); doc.setFont('helvetica', 'bold');
     doc.setTextColor(...PDF_CONFIG.primaryColor);
     doc.text('DATOS DEL CLIENTE', m, y);
     y += 4;
-    doc.setFillColor(253, 253, 253);
+    // Fondo muy transparente (apenas blanco)
+    if (doc.setGState) doc.setGState({ opacity: 0.25 });
+    doc.setFillColor(255, 255, 255);
     doc.roundedRect(m, y-2, pageWidth - m*2, 28, 2, 2, 'F');
-    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(0,0,0);
+    if (doc.setGState) doc.setGState({ opacity: 1 });
+    // Borde sutil
+    doc.setDrawColor(200, 200, 200);
+    doc.roundedRect(m, y-2, pageWidth - m*2, 28, 2, 2, 'S');
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+    doc.setTextColor(34, 34, 34); // Gris oscuro, legible
     const c = orderData.customer || {};
     doc.text(`Nombre: ${toTitleCase(c.name)}`, m+5, y+3);
     doc.text(`Email: ${c.email || '—'}`, m+5, y+10);
@@ -136,7 +143,6 @@ function addCustomerInfo(doc, y, orderData, pageWidth) {
     return y + 28;
 }
 
-// Tabla de productos con wrap automático
 function addOrderDetailsCompact(doc, y, orderData, pageWidth, pageHeight) {
     const m = PDF_CONFIG.margin;
     doc.setFontSize(8.5); doc.setFont('helvetica', 'bold');
@@ -144,7 +150,7 @@ function addOrderDetailsCompact(doc, y, orderData, pageWidth, pageHeight) {
     doc.text('DETALLE DEL PEDIDO', m, y);
     y += 4;
 
-    // Cabecera
+    // Cabecera de tabla (opaca para resaltar títulos)
     doc.setFillColor(...PDF_CONFIG.primaryColor);
     doc.roundedRect(m, y, pageWidth - m*2, 7, 1, 1, 'F');
     doc.setFontSize(7); doc.setFont('helvetica', 'bold');
@@ -154,26 +160,30 @@ function addOrderDetailsCompact(doc, y, orderData, pageWidth, pageHeight) {
     doc.text('PRECIO', m+165, y+4.5);
     y += 7;
 
-    doc.setFont('helvetica', 'normal'); doc.setTextColor(0,0,0);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(34, 34, 34);
     let currentY = y;
-    const maxWidthName = 110; // Espacio para nombre y versión
+    const maxWidthName = 110;
 
     for (let i = 0; i < orderData.items.length; i++) {
         const item = orderData.items[i];
         const nameWithNumber = `${i+1}. ${item.name}`;
-        // Dividir nombre si es muy largo
         const lines = doc.splitTextToSize(nameWithNumber, maxWidthName);
         const lineHeight = 4.5;
         const rowHeight = Math.max(8, lines.length * lineHeight + 6);
 
-        // Comprobar espacio restante
         if (currentY + rowHeight + 40 > pageHeight) {
-            // Reducción de emergencia
             doc.setFontSize(6);
         }
 
+        // Fondo de fila MUY transparente (0.25)
+        if (doc.setGState) doc.setGState({ opacity: 0.25 });
         doc.setFillColor(i % 2 === 0 ? 255 : 250, i % 2 === 0 ? 255 : 251, i % 2 === 0 ? 255 : 252);
         doc.rect(m, currentY, pageWidth - m*2, rowHeight, 'F');
+        if (doc.setGState) doc.setGState({ opacity: 1 });
+        // Borde sutil
+        doc.setDrawColor(230, 230, 230);
+        doc.rect(m, currentY, pageWidth - m*2, rowHeight, 'S');
 
         doc.setFontSize(7);
         doc.text(lines, m+4, currentY + 4);
@@ -181,9 +191,8 @@ function addOrderDetailsCompact(doc, y, orderData, pageWidth, pageHeight) {
         doc.text(String(item.quantity), m+132, currentY + (rowHeight/2), { align: 'center' });
         doc.text(`$${Number(item.total).toFixed(2)}`, m+168, currentY + (rowHeight/2), { align: 'right' });
 
-        // Versión y advertencia
         doc.setFontSize(6); doc.setFont('helvetica', 'italic');
-        doc.setTextColor(100,100,100);
+        doc.setTextColor(80,80,80);
         doc.text(`Versión: ${item.version}`, m+8, currentY + rowHeight - 2);
         const lowerName = String(item.name).toLowerCase();
         if (lowerName.includes('windows 7') || lowerName.includes('windows 8')) {
@@ -191,7 +200,7 @@ function addOrderDetailsCompact(doc, y, orderData, pageWidth, pageHeight) {
             doc.setTextColor(200, 60, 60);
             doc.text('⚠ Sin soporte oficial', m+70, currentY + rowHeight - 2);
         }
-        doc.setTextColor(0,0,0);
+        doc.setTextColor(34, 34, 34);
         currentY += rowHeight;
     }
     doc.setDrawColor(200,200,200);
@@ -199,16 +208,21 @@ function addOrderDetailsCompact(doc, y, orderData, pageWidth, pageHeight) {
     return currentY + 5;
 }
 
-// Resumen de pago integrado justo después de la tabla (ahorra espacio vertical)
 function addPaymentSummaryCompact(doc, y, orderData, pageWidth) {
     const m = PDF_CONFIG.margin;
     doc.setFontSize(8.5); doc.setFont('helvetica', 'bold');
     doc.setTextColor(...PDF_CONFIG.primaryColor);
     doc.text('RESUMEN DE PAGO', m, y);
     y += 4;
+    // Fondo muy transparente
+    if (doc.setGState) doc.setGState({ opacity: 0.25 });
     doc.setFillColor(250,250,250);
     doc.roundedRect(m, y, pageWidth - m*2, 38, 2, 2, 'F');
-    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(0,0,0);
+    if (doc.setGState) doc.setGState({ opacity: 1 });
+    doc.setDrawColor(200,200,200);
+    doc.roundedRect(m, y, pageWidth - m*2, 38, 2, 2, 'S');
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+    doc.setTextColor(34, 34, 34);
     doc.text('Subtotal:', m+10, y+8);
     doc.text(`$${Number(orderData.totals.subtotal).toFixed(2)}`, pageWidth - m - 15, y+8, { align: 'right' });
     let lineY = y+15;
@@ -216,7 +230,7 @@ function addPaymentSummaryCompact(doc, y, orderData, pageWidth) {
         doc.setTextColor(40,167,69);
         doc.text('Descuento (30%):', m+10, y+15);
         doc.text(`-$${Number(orderData.totals.discount).toFixed(2)}`, pageWidth - m - 15, y+15, { align: 'right' });
-        doc.setTextColor(0,0,0);
+        doc.setTextColor(34, 34, 34);
         lineY = y+22;
     }
     doc.setDrawColor(180,180,180);
@@ -230,13 +244,11 @@ function addPaymentSummaryCompact(doc, y, orderData, pageWidth) {
     return lineY + 22;
 }
 
-// Datos bancarios y notas en dos columnas para optimizar espacio
 function addBankAndNotesTwoColumns(doc, y, orderData, pageWidth, pageHeight) {
     const m = PDF_CONFIG.margin;
     const colWidth = (pageWidth - m*2 - 6) / 2;
     const midX = m + colWidth + 6;
 
-    // Si y está muy abajo, comprimir más
     let fontSize = 7.5;
     let lineHeight = 5.5;
     if (y > pageHeight - 80) {
@@ -249,8 +261,13 @@ function addBankAndNotesTwoColumns(doc, y, orderData, pageWidth, pageHeight) {
     doc.setTextColor(...PDF_CONFIG.primaryColor);
     doc.text('DATOS PARA TRANSFERENCIA', m, y);
     let colY = y + 4;
+    // Fondo transparente
+    if (doc.setGState) doc.setGState({ opacity: 0.25 });
     doc.setFillColor(240,248,255);
     doc.roundedRect(m, colY-2, colWidth, 36, 2, 2, 'F');
+    if (doc.setGState) doc.setGState({ opacity: 1 });
+    doc.setDrawColor(200,200,200);
+    doc.roundedRect(m, colY-2, colWidth, 36, 2, 2, 'S');
     const bankRows = [
         'Banco: Banco de Venezuela',
         'Titular: Jonathan José Rangel Betancourt',
@@ -258,7 +275,8 @@ function addBankAndNotesTwoColumns(doc, y, orderData, pageWidth, pageHeight) {
         'Teléfono: 0412-289-1366',
         'Tipo Cuenta: Corriente'
     ];
-    doc.setFontSize(fontSize); doc.setFont('helvetica', 'normal'); doc.setTextColor(0,0,0);
+    doc.setFontSize(fontSize); doc.setFont('helvetica', 'normal');
+    doc.setTextColor(34, 34, 34);
     bankRows.forEach((row, i) => {
         doc.text(row, m+5, colY + 3 + i*lineHeight);
     });
@@ -268,8 +286,12 @@ function addBankAndNotesTwoColumns(doc, y, orderData, pageWidth, pageHeight) {
     doc.setTextColor(33,37,41);
     doc.text('NOTAS IMPORTANTES', midX, y);
     let notesY = y + 4;
+    if (doc.setGState) doc.setGState({ opacity: 0.25 });
     doc.setFillColor(255,255,255);
     doc.roundedRect(midX, notesY-2, colWidth, 36, 2, 2, 'FD');
+    if (doc.setGState) doc.setGState({ opacity: 1 });
+    doc.setDrawColor(200,200,200);
+    doc.roundedRect(midX, notesY-2, colWidth, 36, 2, 2, 'S');
     const notes = [
         '✓ Envíe comprobante por WhatsApp',
         '✓ Respuesta 15-30 min tras pago',
@@ -277,14 +299,15 @@ function addBankAndNotesTwoColumns(doc, y, orderData, pageWidth, pageHeight) {
         '✓ Soporte técnico incluido',
         '✓ Windows 7/8: riesgo del cliente'
     ];
-    doc.setFontSize(fontSize); doc.setFont('helvetica', 'normal'); doc.setTextColor(73,80,87);
+    doc.setFontSize(fontSize); doc.setFont('helvetica', 'normal');
+    doc.setTextColor(73,80,87);
     notes.forEach((note, i) => {
         doc.text(note, midX+5, notesY + 3 + i*lineHeight);
     });
 
     let bottomY = Math.max(colY + 38, notesY + 38);
 
-    // Pie de página
+    // Pie de página (opaco)
     doc.setFontSize(7.5); doc.setFont('helvetica', 'italic');
     doc.setTextColor(...PDF_CONFIG.primaryColor);
     doc.text(`¡${orderData.greeting}, ${toTitleCase(orderData.customer.name)}!`, pageWidth/2, bottomY + 2, { align: 'center' });
@@ -298,7 +321,6 @@ function addBankAndNotesTwoColumns(doc, y, orderData, pageWidth, pageHeight) {
     doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth/2, pageHeight - 6, { align: 'center' });
 }
 
-// Función principal de generación con ajuste dinámico de altura
 async function generateOrderPDF(orderData) {
     const jsPDF = getJSPDF();
     const doc = new jsPDF();
@@ -320,11 +342,11 @@ async function generateOrderPDF(orderData) {
 
 async function downloadOrderPDF(orderData) {
     try {
-        showPDFNotification('Generando PDF profesional (una sola hoja)...', 'info');
+        showPDFNotification('Generando PDF con área central transparente...', 'info');
         const doc = await generateOrderPDF(orderData);
         const fileName = `JRB-Pedido-${orderData.orderNumber}_${new Date().toISOString().slice(0,10)}.pdf`;
         doc.save(fileName);
-        showPDFNotification(`✅ PDF generado correctamente: ${fileName}`);
+        showPDFNotification(`✅ PDF listo: el logo se ve detrás de los datos`);
         return { success: true, fileName };
     } catch (err) {
         pdfLogger.error('Error en downloadOrderPDF:', err);
@@ -361,7 +383,6 @@ function preparePDFData(cart, customerInfo, orderNumber, paymentMethod, totals) 
     };
 }
 
-// Inyectar estilos CSS (solo para márgenes visuales, no afecta al PDF)
 if (typeof document !== 'undefined' && !document.getElementById('pdf-anim-styles')) {
     const style = document.createElement('style');
     style.id = 'pdf-anim-styles';
@@ -369,7 +390,6 @@ if (typeof document !== 'undefined' && !document.getElementById('pdf-anim-styles
     document.head.appendChild(style);
 }
 
-// Exportación para navegador y módulos
 if (typeof window !== 'undefined') {
     Object.assign(window, { generateOrderPDF, downloadOrderPDF, preparePDFData, toTitleCase });
 }
